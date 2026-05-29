@@ -1,0 +1,21 @@
+{% extends "base.html" %}
+{% block title %}Courses{% endblock %}
+{% block content %}
+  <div class="page-head">
+    <h1>Courses</h1>
+    {% if g.user %}<a class="button" href="{{ url_for('web.new_course') }}">New course</a>{% endif %}
+  </div>
+  {% if courses %}
+    <ul class="course-list">
+      {% for c in courses %}
+        <li>
+          <a class="course-name" href="{{ url_for('web.course_detail', course_id=c['id']) }}">{{ c['name'] }}</a>
+          {% if c['term'] %}<span class="course-term"> · {{ c['term'] }}</span>{% endif %}
+          {% if c['description'] %}<p class="muted">{{ c['description'] }}</p>{% endif %}
+        </li>
+      {% endfor %}
+    </ul>
+  {% else %}
+    <p class="muted">No courses yet.{% if g.user %} <a href="{{ url_for('web.new_course') }}">Add the first one.</a>{% endif %}</p>
+  {% endif %}
+{% endblock %}

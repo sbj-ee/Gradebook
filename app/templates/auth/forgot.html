@@ -1,0 +1,13 @@
+{% extends "base.html" %}
+{% block title %}Forgot password{% endblock %}
+{% block content %}
+  <h1>Forgot password</h1>
+  <p class="muted">Enter your username or email and we'll send a reset link.</p>
+  <form method="post" class="card">
+    <label>Username or email
+      <input name="identifier" required autofocus>
+    </label>
+    <button type="submit">Send reset link</button>
+  </form>
+  <p><a href="{{ url_for('auth.login') }}">Back to log in</a></p>
+{% endblock %}

@@ -1,0 +1,26 @@
+{% extends "base.html" %}
+{% block title %}Admin · Edit user{% endblock %}
+{% block content %}
+  <p><a href="{{ url_for('admin.users') }}">&larr; Users</a></p>
+  <h1>Edit user</h1>
+  <p class="muted">
+    User #{{ user['id'] }} ·
+    {% if user['is_admin'] %}<span class="badge">admin</span>{% else %}standard{% endif %}
+    · joined {{ user['created_at'] }}
+  </p>
+  <form method="post" class="card">
+    <label>Username
+      <input name="username" value="{{ values.get('username', '') }}" required autofocus>
+    </label>
+    <label>Email
+      <input type="email" name="email" value="{{ values.get('email', '') }}">
+    </label>
+    <label>Phone
+      <input type="tel" name="phone" value="{{ values.get('phone', '') }}" placeholder="+15551234567">
+    </label>
+    <label>New password <span class="muted">(leave blank to keep current)</span>
+      <input type="password" name="new_password" autocomplete="new-password">
+    </label>
+    <button type="submit">Save changes</button>
+  </form>
+{% endblock %}

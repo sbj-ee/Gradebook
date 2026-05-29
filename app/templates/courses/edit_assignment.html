@@ -1,0 +1,26 @@
+{% extends "base.html" %}
+{% block title %}Edit assignment · {{ assignment['name'] }}{% endblock %}
+{% block content %}
+  <p><a href="{{ url_for('web.course_detail', course_id=course['id']) }}">&larr; {{ course['name'] }}</a></p>
+  <h1>Edit assignment</h1>
+  <form method="post" class="card">
+    <label>Category
+      <select name="category">
+        {% for cat in categories %}
+          <option value="{{ cat }}" {% if values.get('category') == cat %}selected{% endif %}>{{ category_labels[cat] }}</option>
+        {% endfor %}
+      </select>
+    </label>
+    <label>Name
+      <input name="name" value="{{ values.get('name', '') }}" required autofocus>
+    </label>
+    <label>Max points
+      <input type="number" name="max_points" min="0" step="0.01" value="{{ values.get('max_points', '') }}" required>
+    </label>
+    <label class="check">
+      <input type="checkbox" name="extra_credit" value="1" {% if values.get('extra_credit') %}checked{% endif %}>
+      Extra credit (bonus — adds to the category's earned points, not its total)
+    </label>
+    <button type="submit">Save changes</button>
+  </form>
+{% endblock %}

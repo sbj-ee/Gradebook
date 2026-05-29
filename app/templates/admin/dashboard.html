@@ -1,0 +1,37 @@
+{% extends "base.html" %}
+{% block title %}Admin{% endblock %}
+{% block content %}
+  <h1>Admin control panel</h1>
+  <nav class="subnav">
+    <a href="{{ url_for('admin.users') }}">Users</a>
+    <a href="{{ url_for('admin.courses') }}">Courses</a>
+    <a href="{{ url_for('admin.notifications') }}">Notifications</a>
+  </nav>
+
+  <div class="stats">
+    <a class="stat" href="{{ url_for('admin.users') }}">
+      <span class="stat-number">{{ counts.users }}</span>
+      <span class="stat-label">Users</span>
+    </a>
+    <a class="stat" href="{{ url_for('admin.courses') }}">
+      <span class="stat-number">{{ counts.courses }}</span>
+      <span class="stat-label">Courses</span>
+    </a>
+    <a class="stat" href="{{ url_for('admin.courses') }}">
+      <span class="stat-number">{{ counts.students }}</span>
+      <span class="stat-label">Students</span>
+    </a>
+    <a class="stat" href="{{ url_for('admin.courses') }}">
+      <span class="stat-number">{{ counts.assignments }}</span>
+      <span class="stat-label">Assignments</span>
+    </a>
+    <a class="stat" href="{{ url_for('admin.courses') }}">
+      <span class="stat-number">{{ counts.grades }}</span>
+      <span class="stat-label">Grades</span>
+    </a>
+    <a class="stat" href="{{ url_for('admin.notifications') }}">
+      <span class="stat-number">{{ counts.notifications }}</span>
+      <span class="stat-label">Notifications</span>
+    </a>
+  </div>
+{% endblock %}

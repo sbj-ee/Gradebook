@@ -1,0 +1,29 @@
+{% extends "base.html" %}
+{% block title %}New course{% endblock %}
+{% block content %}
+  <h1>New course</h1>
+  <form method="post" class="card">
+    <label>Name
+      <input name="name" value="{{ form.get('name', '') }}" required autofocus>
+    </label>
+    <label>Term
+      <input name="term" value="{{ form.get('term', '') }}" placeholder="e.g. Fall 2026">
+    </label>
+    <label>Description
+      <textarea name="description" rows="3">{{ form.get('description', '') }}</textarea>
+    </label>
+    <p class="muted">Category weights (whole percentages, must total 100).</p>
+    <div class="weights">
+      <label>Homework %
+        <input type="number" name="homework_weight" min="0" max="100" value="{{ form.get('homework_weight', '40') }}" required>
+      </label>
+      <label>Quizzes %
+        <input type="number" name="quiz_weight" min="0" max="100" value="{{ form.get('quiz_weight', '20') }}" required>
+      </label>
+      <label>Exams %
+        <input type="number" name="exam_weight" min="0" max="100" value="{{ form.get('exam_weight', '40') }}" required>
+      </label>
+    </div>
+    <button type="submit">Create</button>
+  </form>
+{% endblock %}

@@ -1,0 +1,282 @@
+:root {
+  --bg: #f6f7f9;
+  --card: #ffffff;
+  --border: #d9dde3;
+  --text: #1f2733;
+  --muted: #6b7280;
+  --accent: #4f46e5;
+  --accent-text: #ffffff;
+}
+
+* { box-sizing: border-box; }
+
+body {
+  margin: 0;
+  font-family: system-ui, -apple-system, Segoe UI, Roboto, sans-serif;
+  background: var(--bg);
+  color: var(--text);
+  line-height: 1.5;
+  /* Full-bleed data tables are exactly 100vw; suppress the page-level horizontal
+     scroll a vertical scrollbar would otherwise introduce. The tables keep their
+     own horizontal scroll via .table-scroll. */
+  overflow-x: hidden;
+}
+
+header {
+  background: var(--card);
+  border-bottom: 1px solid var(--border);
+}
+
+nav {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  max-width: 880px;
+  margin: 0 auto;
+  padding: 0.75rem 1rem;
+}
+
+nav .brand {
+  font-weight: 700;
+  color: var(--text);
+  text-decoration: none;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+nav .brand .logo { width: 28px; height: 28px; display: block; }
+nav .spacer { flex: 1; }
+nav a { color: var(--accent); text-decoration: none; }
+nav a:hover { text-decoration: underline; }
+nav .user { color: var(--muted); font-size: 0.9rem; }
+
+main {
+  max-width: 880px;
+  margin: 1.5rem auto;
+  padding: 0 1rem;
+}
+
+/* Wider content area for data-heavy pages (e.g. the gradebook grid and the admin
+   users table), applied to both nav and main so the header stays aligned. */
+body.wide nav, body.wide main { max-width: 1200px; }
+
+h1 { font-size: 1.6rem; }
+h2 { font-size: 1.2rem; margin-top: 2rem; }
+
+.muted { color: var(--muted); }
+
+.page-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.card {
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 1rem;
+  max-width: 420px;
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+label { display: flex; flex-direction: column; font-size: 0.9rem; gap: 0.25rem; }
+label.check { flex-direction: row; align-items: center; gap: 0.5rem; }
+label.check input { width: auto; }
+input, textarea, select {
+  font: inherit;
+  padding: 0.5rem;
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  width: 100%;
+  background: var(--card);
+}
+
+button, .button {
+  display: inline-block;
+  background: var(--accent);
+  color: var(--accent-text);
+  border: none;
+  border-radius: 6px;
+  padding: 0.5rem 0.9rem;
+  font: inherit;
+  cursor: pointer;
+  text-decoration: none;
+  align-self: flex-start;
+}
+button:hover, .button:hover { filter: brightness(0.95); }
+
+.link-button {
+  background: none;
+  color: var(--accent);
+  padding: 0;
+  text-decoration: underline;
+}
+
+ul.course-list { list-style: none; padding: 0; }
+ul.course-list li {
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 0.75rem 1rem;
+  margin-bottom: 0.6rem;
+}
+.course-name { font-weight: 600; font-size: 1.05rem; color: var(--accent); text-decoration: none; }
+ul.course-list p { margin: 0.25rem 0 0; }
+.course-term { color: var(--muted); font-size: 0.85rem; font-weight: 400; }
+
+table.grid {
+  width: 100%;
+  border-collapse: collapse;
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  overflow: hidden;
+}
+table.grid th, table.grid td {
+  text-align: left;
+  padding: 0.5rem 0.75rem;
+  border-bottom: 1px solid var(--border);
+}
+table.grid th { background: #eef1f5; font-size: 0.85rem; }
+table.grid tr:last-child td { border-bottom: none; }
+table.grid form { margin: 0; }
+table.grid th.nowrap, table.grid td.nowrap { white-space: nowrap; }
+table.grid td.num, table.grid th.num { text-align: right; }
+
+/* Category header band in the gradebook grid. */
+table.grid th.cat-homework { background: #eef2ff; color: #3730a3; }
+table.grid th.cat-quiz { background: #ecfeff; color: #155e75; }
+table.grid th.cat-exam { background: #fef2f2; color: #991b1b; }
+table.grid td.final { font-weight: 700; }
+
+/* Let wide tables scroll horizontally instead of overflowing the page. */
+.table-scroll { overflow-x: auto; }
+
+/* The gradebook grid additionally breaks out of the centered column to use the
+   full viewport width, so its table area is as wide as possible and only scrolls
+   horizontally once the content is wider than the screen itself. */
+.table-scroll.full-bleed {
+  width: 100vw;
+  margin-left: calc(50% - 50vw);
+  padding: 0 1.5rem;
+}
+
+ul.flashes {
+  list-style: none;
+  padding: 0.75rem 1rem;
+  margin: 0 0 1rem;
+  background: #fff7ed;
+  border: 1px solid #fed7aa;
+  border-radius: 8px;
+  color: #9a3412;
+}
+
+.banner {
+  padding: 0.75rem 1rem;
+  margin: 0 0 1rem;
+  background: #eef2ff;
+  border: 1px solid #c7d2fe;
+  border-radius: 8px;
+  color: #3730a3;
+}
+
+/* --- Admin --- */
+.subnav {
+  display: flex;
+  gap: 1rem;
+  margin: 0 0 1.25rem;
+  padding-bottom: 0.5rem;
+  border-bottom: 1px solid var(--border);
+}
+.subnav a { color: var(--accent); text-decoration: none; }
+.subnav a:hover { text-decoration: underline; }
+
+.stats { display: flex; gap: 1rem; flex-wrap: wrap; }
+.stat {
+  flex: 1;
+  min-width: 140px;
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 1.25rem;
+  text-decoration: none;
+  color: var(--text);
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+}
+.stat:hover { border-color: var(--accent); }
+.stat-number { font-size: 2rem; font-weight: 700; color: var(--accent); }
+.stat-label { color: var(--muted); }
+
+.badge {
+  display: inline-block;
+  background: #e0e7ff;
+  color: #3730a3;
+  border-radius: 999px;
+  padding: 0.1rem 0.6rem;
+  font-size: 0.8rem;
+  font-weight: 600;
+}
+
+/* Letter-grade pill. */
+.letter {
+  display: inline-block;
+  border-radius: 6px;
+  padding: 0.1rem 0.5rem;
+  font-weight: 700;
+  font-size: 0.9rem;
+}
+.letter-A { background: #dcfce7; color: #166534; }
+.letter-B { background: #e0f2fe; color: #075985; }
+.letter-C { background: #fef9c3; color: #854d0e; }
+.letter-D { background: #ffedd5; color: #9a3412; }
+.letter-F { background: #fee2e2; color: #991b1b; }
+
+.ec-tag {
+  display: inline-block;
+  background: #fef3c7;
+  color: #92400e;
+  border-radius: 4px;
+  padding: 0 0.35rem;
+  font-size: 0.7rem;
+  font-weight: 700;
+  vertical-align: middle;
+}
+
+td.actions { display: flex; gap: 0.75rem; align-items: center; }
+td.actions form { margin: 0; }
+.link-button.danger { color: #b91c1c; }
+
+.weights {
+  display: flex;
+  gap: 1rem;
+  flex-wrap: wrap;
+}
+.weights label { font-size: 0.85rem; }
+.weights input { width: 6rem; }
+
+.filter {
+  display: flex;
+  gap: 1rem;
+  align-items: flex-end;
+  flex-wrap: wrap;
+  margin: 0 0 1.25rem;
+}
+.filter label { font-size: 0.85rem; }
+.filter input, .filter select { width: auto; }
+
+.status {
+  display: inline-block;
+  border-radius: 999px;
+  padding: 0.1rem 0.6rem;
+  font-size: 0.8rem;
+  font-weight: 600;
+}
+.status-sent { background: #dcfce7; color: #166534; }
+.status-logged { background: #e0e7ff; color: #3730a3; }
+.status-skipped { background: #f1f5f9; color: #475569; }
+.status-failed { background: #fee2e2; color: #991b1b; }

@@ -1,0 +1,14 @@
+{% extends "base.html" %}
+{% block title %}Reset password{% endblock %}
+{% block content %}
+  <h1>Choose a new password</h1>
+  <form method="post" class="card">
+    <label>New password
+      <input type="password" name="new_password" autocomplete="new-password" required autofocus>
+    </label>
+    <label>Confirm new password
+      <input type="password" name="confirm_password" autocomplete="new-password" required>
+    </label>
+    <button type="submit">Reset password</button>
+  </form>
+{% endblock %}

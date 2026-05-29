@@ -1,0 +1,34 @@
+{% extends "base.html" %}
+{% block title %}Enter grades · {{ assignment['name'] }}{% endblock %}
+{% block content %}
+  <p><a href="{{ url_for('web.course_detail', course_id=course['id']) }}">&larr; {{ course['name'] }}</a></p>
+  <h1>Enter grades</h1>
+  <p class="muted">
+    {{ assignment['name'] }} · out of {{ '%g'|format(assignment['max_points']) }} points.
+    Leave a field blank to clear that grade.
+  </p>
+  <p><a href="{{ url_for('web.export_assignment_pdf', assignment_id=assignment['id']) }}">Export results PDF</a> (student IDs only)</p>
+  {% if students %}
+    <form method="post" class="card" style="max-width: 520px;">
+      <table class="grid">
+        <thead><tr><th>Student ID</th><th>Name</th><th class="num">Points</th></tr></thead>
+        <tbody>
+          {% for s in students %}
+            <tr>
+              <td class="nowrap">{{ s['student_id'] }}</td>
+              <td>{{ s['name'] }}</td>
+              <td class="num">
+                <input type="number" name="points_{{ s['id'] }}" min="0" step="0.01"
+                       max="{{ '%g'|format(assignment['max_points']) }}"
+                       value="{{ current[s['id']] }}" style="width: 6rem;">
+              </td>
+            </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+      <button type="submit">Save grades</button>
+    </form>
+  {% else %}
+    <p class="muted">No students enrolled. <a href="{{ url_for('web.course_detail', course_id=course['id']) }}">Add students first.</a></p>
+  {% endif %}
+{% endblock %}

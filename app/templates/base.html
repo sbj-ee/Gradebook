@@ -1,0 +1,47 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>{% block title %}Gradebook{% endblock %}</title>
+  <link rel="icon" type="image/svg+xml" href="{{ url_for('static', filename='favicon.svg') }}">
+  <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body class="{% block body_class %}{% endblock %}">
+  <header>
+    <nav>
+      <a class="brand" href="{{ url_for('web.list_courses') }}">
+        <img class="logo" src="{{ url_for('static', filename='logo.svg') }}" alt="" width="28" height="28">
+        <span>Gradebook</span>
+      </a>
+      <span class="spacer"></span>
+      <a href="{{ url_for('web.list_courses') }}">Courses</a>
+      {% if g.user %}
+        <a href="{{ url_for('web.my_courses') }}">My courses</a>
+        <a href="{{ url_for('web.new_course') }}">New course</a>
+        {% if g.user['is_admin'] %}<a href="{{ url_for('admin.dashboard') }}">Admin</a>{% endif %}
+        <a href="{{ url_for('web.account') }}" class="user">{{ g.user['username'] }}</a>
+        <a href="{{ url_for('auth.logout') }}">Log out</a>
+      {% else %}
+        <a href="{{ url_for('auth.login') }}">Log in</a>
+        <a href="{{ url_for('auth.register') }}">Register</a>
+      {% endif %}
+    </nav>
+  </header>
+  <main>
+    {% if last_login_notice %}
+      <div class="banner">Welcome back — your last login was
+        <time class="js-utc" datetime="{{ last_login_notice.replace(' ', 'T') }}Z">{{ last_login_notice }}</time>.</div>
+    {% endif %}
+    {% with messages = get_flashed_messages() %}
+      {% if messages %}
+        <ul class="flashes">
+          {% for message in messages %}<li>{{ message }}</li>{% endfor %}
+        </ul>
+      {% endif %}
+    {% endwith %}
+    {% block content %}{% endblock %}
+  </main>
+  <script src="{{ url_for('static', filename='tz.js') }}" defer></script>
+</body>
+</html>

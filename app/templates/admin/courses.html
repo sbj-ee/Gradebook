@@ -1,0 +1,56 @@
+{% extends "base.html" %}
+{% block title %}Admin · Courses{% endblock %}
+{% block content %}
+  <p><a href="{{ url_for('admin.dashboard') }}">&larr; Admin</a></p>
+  <div class="page-head">
+    <h1>Courses</h1>
+    <a class="button" href="{{ url_for('web.new_course') }}">New course</a>
+  </div>
+
+  <p class="muted">Times below are shown in your local time zone; the CSV export uses UTC.</p>
+  <form method="get" action="{{ url_for('admin.grades_csv') }}" class="filter">
+    <label>Course
+      <select name="course_id">
+        <option value="">All courses</option>
+        {% for c in courses %}<option value="{{ c['id'] }}">{{ c['name'] }}</option>{% endfor %}
+      </select>
+    </label>
+    <label>Category
+      <select name="category">
+        <option value="">All categories</option>
+        <option value="homework">Homework</option>
+        <option value="quiz">Quizzes</option>
+        <option value="exam">Exams</option>
+      </select>
+    </label>
+    <button type="submit">Export grades CSV</button>
+  </form>
+
+  {% if courses %}
+    <table class="grid">
+      <thead>
+        <tr><th>ID</th><th>Name</th><th>Term</th><th class="num">HW/Quiz/Exam</th><th>Created</th><th>Actions</th></tr>
+      </thead>
+      <tbody>
+        {% for c in courses %}
+          <tr>
+            <td>{{ c['id'] }}</td>
+            <td><a href="{{ url_for('web.course_detail', course_id=c['id']) }}">{{ c['name'] }}</a></td>
+            <td>{{ c['term'] or '—' }}</td>
+            <td class="num">{{ c['homework_weight'] }}/{{ c['quiz_weight'] }}/{{ c['exam_weight'] }}</td>
+            <td class="nowrap"><time class="js-utc" datetime="{{ c['created_at'].replace(' ', 'T') }}Z">{{ c['created_at'] }}</time></td>
+            <td class="actions">
+              <a href="{{ url_for('web.course_detail', course_id=c['id']) }}">Open</a>
+              <form method="post" action="{{ url_for('admin.delete_course', course_id=c['id']) }}"
+                    onsubmit="return confirm('Delete {{ c['name'] }} and all its students, assignments, and grades?');">
+                <button type="submit" class="link-button danger">Delete</button>
+              </form>
+            </td>
+          </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  {% else %}
+    <p class="muted">No courses yet.</p>
+  {% endif %}
+{% endblock %}

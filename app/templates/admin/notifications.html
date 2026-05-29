@@ -1,0 +1,30 @@
+{% extends "base.html" %}
+{% block title %}Admin · Notifications{% endblock %}
+{% block content %}
+  <p><a href="{{ url_for('admin.dashboard') }}">&larr; Admin</a></p>
+  <h1>Notifications</h1>
+  <p class="muted">Audit log of grade notifications. Status <code>logged</code> means
+    the channel isn't configured yet (set the MAIL_* / TWILIO_* env vars to deliver for real).</p>
+  {% if notifications %}
+    <table class="grid">
+      <thead>
+        <tr><th>When</th><th>Event</th><th>Channel</th><th>Recipient</th><th>Status</th><th>Subject</th></tr>
+      </thead>
+      <tbody>
+        {% for n in notifications %}
+          <tr>
+            <td>{{ n['created_at'] }}</td>
+            <td>{{ n['event'] }}</td>
+            <td>{{ n['channel'] }}</td>
+            <td>{{ n['recipient'] }}</td>
+            <td><span class="status status-{{ n['status'] }}">{{ n['status'] }}</span>
+              {% if n['detail'] %}<br><span class="muted">{{ n['detail'] }}</span>{% endif %}</td>
+            <td>{{ n['subject'] }}</td>
+          </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  {% else %}
+    <p class="muted">No notifications yet.</p>
+  {% endif %}
+{% endblock %}

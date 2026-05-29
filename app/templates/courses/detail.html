@@ -1,0 +1,157 @@
+{% extends "base.html" %}
+{% block title %}{{ course['name'] }}{% endblock %}
+{% block body_class %}wide{% endblock %}
+{% block content %}
+  <p><a href="{{ url_for('web.list_courses') }}">&larr; All courses</a></p>
+  <div class="page-head">
+    <h1>{{ course['name'] }}{% if course['term'] %} <span class="course-term">· {{ course['term'] }}</span>{% endif %}</h1>
+    {% if can_edit %}
+      <a class="button" href="{{ url_for('web.edit_course', course_id=course['id']) }}">Edit course</a>
+    {% endif %}
+  </div>
+  {% if course['description'] %}<p>{{ course['description'] }}</p>{% endif %}
+  <p class="muted">
+    Weighting: Homework {{ book.weights.homework }}% ·
+    Quizzes {{ book.weights.quiz }}% · Exams {{ book.weights.exam }}%.
+    A category with no graded work is dropped and the rest are renormalized.
+    Extra-credit assignments (<span class="ec-tag">EC</span>) add to their category's
+    earned points without raising its total.
+  </p>
+
+  <div class="page-head">
+    <h2>Gradebook</h2>
+    {% if can_edit and book.rows %}
+      <a class="button" href="{{ url_for('web.export_gradebook_pdf', course_id=course['id']) }}">Export gradebook PDF</a>
+    {% endif %}
+  </div>
+  {% if book.rows %}
+    <div class="table-scroll full-bleed">
+      <table class="grid">
+        <thead>
+          <tr>
+            <th class="nowrap">Student ID</th>
+            <th>Name</th>
+            {% for a in book.assignments %}
+              <th class="num nowrap cat-{{ a['category'] }}" title="{{ category_labels[a['category']] }}{% if a['extra_credit'] %} · extra credit{% endif %}">
+                {% if can_edit %}
+                  <a href="{{ url_for('web.grade_assignment', assignment_id=a['id']) }}">{{ a['name'] }}</a>
+                {% else %}{{ a['name'] }}{% endif %}
+                {% if a['extra_credit'] %}<span class="ec-tag">EC</span>{% endif %}
+                <br><span class="muted">/{{ '%g'|format(a['max_points']) }}</span>
+              </th>
+            {% endfor %}
+            <th class="num">HW %</th>
+            <th class="num">Quiz %</th>
+            <th class="num">Exam %</th>
+            <th class="num">Final %</th>
+            <th>Grade</th>
+            {% if can_edit %}<th></th>{% endif %}
+          </tr>
+        </thead>
+        <tbody>
+          {% for r in book.rows %}
+            <tr>
+              <td class="nowrap">{{ r.student['student_id'] }}</td>
+              <td>{{ r.student['name'] }}</td>
+              {% for a in book.assignments %}
+                <td class="num">
+                  {% if a['id'] in r.grades %}{{ '%g'|format(r.grades[a['id']]) }}{% else %}<span class="muted">—</span>{% endif %}
+                </td>
+              {% endfor %}
+              {% for cat in categories %}
+                <td class="num">
+                  {% if r.categories[cat].pct is not none %}{{ '%g'|format(r.categories[cat].pct) }}{% else %}<span class="muted">—</span>{% endif %}
+                </td>
+              {% endfor %}
+              <td class="num final">
+                {% if r.final is not none %}{{ '%g'|format(r.final) }}{% else %}<span class="muted">—</span>{% endif %}
+              </td>
+              <td>
+                {% if r.final is not none %}<span class="letter letter-{{ r.letter }}">{{ r.letter }}</span>
+                {% else %}<span class="muted">—</span>{% endif %}
+              </td>
+              {% if can_edit %}
+                <td class="actions">
+                  <form method="post" action="{{ url_for('web.delete_student', student_id=r.student['id']) }}"
+                        onsubmit="return confirm('Remove {{ r.student['name'] }} from this course?');">
+                    <button type="submit" class="link-button danger">Remove</button>
+                  </form>
+                </td>
+              {% endif %}
+            </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  {% else %}
+    <p class="muted">No students enrolled yet.{% if not can_edit %} Check back once the roster is set up.{% endif %}</p>
+  {% endif %}
+
+  {% if can_edit %}
+    <h2>Assignments</h2>
+    {% if book.assignments %}
+      <table class="grid">
+        <thead><tr><th>Category</th><th>Name</th><th class="num">Max points</th><th>Actions</th></tr></thead>
+        <tbody>
+          {% for a in book.assignments %}
+            <tr>
+              <td>{{ category_labels[a['category']] }}{% if a['extra_credit'] %} <span class="ec-tag">EC</span>{% endif %}</td>
+              <td>{{ a['name'] }}</td>
+              <td class="num">{{ '%g'|format(a['max_points']) }}</td>
+              <td class="actions">
+                <a href="{{ url_for('web.grade_assignment', assignment_id=a['id']) }}">Enter grades</a>
+                <a href="{{ url_for('web.edit_assignment', assignment_id=a['id']) }}">Edit</a>
+                <a href="{{ url_for('web.export_assignment_pdf', assignment_id=a['id']) }}">PDF</a>
+                <form method="post" action="{{ url_for('web.delete_assignment', assignment_id=a['id']) }}"
+                      onsubmit="return confirm('Delete {{ a['name'] }} and its grades?');">
+                  <button type="submit" class="link-button danger">Delete</button>
+                </form>
+              </td>
+            </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    {% else %}
+      <p class="muted">No assignments yet.</p>
+    {% endif %}
+
+    <h2>Add a student</h2>
+    <form method="post" action="{{ url_for('web.add_student', course_id=course['id']) }}" class="card">
+      <label>Student ID
+        <input name="student_id" required>
+      </label>
+      <label>Name
+        <input name="name" required>
+      </label>
+      <label>Email (optional, for grade notifications)
+        <input type="email" name="email">
+      </label>
+      <label>Phone (optional, for SMS notifications)
+        <input type="tel" name="phone" placeholder="+15551234567">
+      </label>
+      <button type="submit">Add student</button>
+    </form>
+
+    <h2>Add an assignment</h2>
+    <form method="post" action="{{ url_for('web.add_assignment', course_id=course['id']) }}" class="card">
+      <label>Category
+        <select name="category">
+          {% for cat in categories %}<option value="{{ cat }}">{{ category_labels[cat] }}</option>{% endfor %}
+        </select>
+      </label>
+      <label>Name
+        <input name="name" required>
+      </label>
+      <label>Max points
+        <input type="number" name="max_points" min="0" step="0.01" value="100" required>
+      </label>
+      <label class="check">
+        <input type="checkbox" name="extra_credit" value="1">
+        Extra credit (bonus — adds to the category's earned points, not its total)
+      </label>
+      <button type="submit">Add assignment</button>
+    </form>
+  {% elif g.user is none %}
+    <p><a href="{{ url_for('auth.login', next=request.path) }}">Log in</a> to manage a course you teach.</p>
+  {% endif %}
+{% endblock %}
