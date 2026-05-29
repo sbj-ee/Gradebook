@@ -123,8 +123,10 @@ def grades_csv():
             r["assignment_name"], "yes" if r["extra_credit"] else "no",
             f"{r['points']:g}", f"{r['max_points']:g}", r["created_at"],
         ])
+    # Prefix a UTF-8 BOM so LibreOffice Calc / Excel detect the encoding reliably
+    # when the file is opened directly. Flask adds "; charset=utf-8" for text/*.
     return Response(
-        buf.getvalue(),
+        "\ufeff" + buf.getvalue(),
         mimetype="text/csv",
         headers={"Content-Disposition": "attachment; filename=grades.csv"},
     )
