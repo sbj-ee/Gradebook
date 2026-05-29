@@ -124,6 +124,12 @@ Both query parameters are optional. The file has one row per grade with the cour
 student ID, student name, category, assignment, extra-credit flag, points, max points, and
 creation timestamp.
 
+The CSV is UTF-8 and begins with a byte-order mark (BOM), which lets LibreOffice Calc and
+Excel detect the encoding automatically when the file is opened directly. The first row is
+the header. If a spreadsheet app drops the header on import, check its text-import dialog —
+in LibreOffice's *Text Import* dialog make sure **From row** is `1` (it remembers the last
+value used) and the **Separator** is **Comma**.
+
 ### PDF exports
 
 For sharing or posting results, two PDF exports are available to the course owner (or an
