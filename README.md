@@ -14,6 +14,8 @@ the categories a configurable weight, and the app computes every student's weigh
 percentage and letter grade. It ships with both a server-rendered web UI and a JSON API,
 and is served with **gunicorn**.
 
+![The gradebook grid for a course: per-assignment scores, per-category percentages, the weighted final, and a letter grade, with extra-credit and drop-lowest applied](docs/gradebook.png)
+
 ## Features
 
 - Username/password accounts (session login + password hashing via Werkzeug)
@@ -181,6 +183,8 @@ admin). **Neither prints student names — students are identified by their stud
   ```
   GET /courses/<id>/students/<id>/report.pdf
   ```
+
+  ![A student's report card: assignments grouped by category with a dropped score marked, category subtotals, and the weighted final grade](docs/report-card.png)
 
 ## Notifications
 
