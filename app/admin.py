@@ -6,7 +6,7 @@ from flask import (
 )
 
 from . import models
-from .auth import admin_required
+from .auth import admin_required, download_admin_required
 
 bp = Blueprint("admin", __name__, url_prefix="/admin")
 
@@ -105,7 +105,7 @@ def delete_course(course_id):
 # --- Reports ---------------------------------------------------------------
 
 @bp.route("/reports/grades.csv")
-@admin_required
+@download_admin_required
 def grades_csv():
     rows = models.query_grades(
         course_id=request.args.get("course_id", type=int),

@@ -37,6 +37,11 @@ def test_admin_cannot_delete_self(client, auth, make_admin, user_row):
     assert b"cannot delete your own account" in resp.data
 
 
+def test_grades_csv_returns_401_when_logged_out(client):
+    # Download endpoint fails loudly rather than redirecting to an HTML login page.
+    assert client.get("/admin/reports/grades.csv").status_code == 401
+
+
 def test_grades_csv_export(client, auth, make_admin):
     auth.register(username="root")
     make_admin("root")

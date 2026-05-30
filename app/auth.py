@@ -81,6 +81,35 @@ def admin_required(view):
     return wrapped_view
 
 
+def download_login_required(view):
+    """For file-download endpoints: return 401 (not an HTML login redirect) when
+    unauthenticated, so a stale-session download fails loudly instead of saving the
+    login page. Per-resource ownership is still enforced inside the view."""
+
+    @functools.wraps(view)
+    def wrapped_view(**kwargs):
+        if g.user is None:
+            abort(401)
+        return view(**kwargs)
+
+    return wrapped_view
+
+
+def download_admin_required(view):
+    """Like ``download_login_required`` but also requires admin (401 if logged out,
+    403 if not an admin)."""
+
+    @functools.wraps(view)
+    def wrapped_view(**kwargs):
+        if g.user is None:
+            abort(401)
+        if not g.user["is_admin"]:
+            abort(403)
+        return view(**kwargs)
+
+    return wrapped_view
+
+
 def api_auth_required(view):
     """For JSON API views: accept the session cookie or HTTP Basic auth.
 

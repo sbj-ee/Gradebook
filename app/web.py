@@ -6,7 +6,7 @@ from flask import (
 from werkzeug.security import check_password_hash
 
 from . import importer, models, pdf
-from .auth import login_required
+from .auth import download_login_required, login_required
 from .notifications import notify_grade_event
 from .utils import CATEGORIES, CATEGORY_LABELS, GRADING_SCALE_LABELS
 
@@ -244,7 +244,7 @@ def student_report(course_id, student_id):
 
 
 @bp.route("/courses/<int:course_id>/students/<int:student_id>/report.pdf")
-@login_required
+@download_login_required
 def export_student_report_pdf(course_id, student_id):
     course = models.get_course(course_id)
     _require_course_edit(course)
@@ -402,7 +402,7 @@ def import_grades(assignment_id):
 
 
 @bp.route("/assignments/<int:assignment_id>/results.pdf")
-@login_required
+@download_login_required
 def export_assignment_pdf(assignment_id):
     assignment = models.get_assignment(assignment_id)
     if assignment is None:
@@ -416,7 +416,7 @@ def export_assignment_pdf(assignment_id):
 
 
 @bp.route("/courses/<int:course_id>/gradebook.pdf")
-@login_required
+@download_login_required
 def export_gradebook_pdf(course_id):
     course = models.get_course(course_id)
     _require_course_edit(course)

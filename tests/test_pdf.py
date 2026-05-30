@@ -54,12 +54,13 @@ def test_pdf_exports_require_course_owner(client, auth):
     assert client.get(f"/courses/{cid}/gradebook.pdf").status_code == 403
 
 
-def test_pdf_exports_require_login(client, auth):
+def test_pdf_exports_return_401_when_logged_out(client, auth):
     cid, sid, aid = _setup(client, auth)
     auth.logout()
-    resp = client.get(f"/courses/{cid}/gradebook.pdf")
-    assert resp.status_code in (302, 303)
-    assert "/auth/login" in resp.headers["Location"]
+    # File downloads return 401 (not an HTML login redirect) so a stale session
+    # can't silently save the login page as a PDF.
+    assert client.get(f"/courses/{cid}/gradebook.pdf").status_code == 401
+    assert client.get(f"/assignments/{aid}/results.pdf").status_code == 401
 
 
 def test_assignment_pdf_missing_404(client, auth):
