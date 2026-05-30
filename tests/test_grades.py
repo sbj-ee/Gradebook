@@ -238,7 +238,7 @@ def test_extra_credit_can_exceed_100(client, auth):
 def test_extra_credit_defaults_off(client, auth):
     auth.register()
     cid = make_course(client)
-    aid = add_assignment(client, cid)  # no extra_credit key
+    add_assignment(client, cid)  # no extra_credit key
     a = client.get(f"/api/courses/{cid}/assignments").get_json()[0]
     assert a["extra_credit"] is False
 

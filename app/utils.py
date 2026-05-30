@@ -91,4 +91,4 @@ def parse_weights(homework, quiz, exam):
     try:
         return int(homework), int(quiz), int(exam)
     except (TypeError, ValueError):
-        raise ValueError("weights must be whole numbers")
+        raise ValueError("weights must be whole numbers") from None

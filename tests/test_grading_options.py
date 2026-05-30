@@ -29,7 +29,7 @@ def test_drop_lowest_homework(client, auth):
     a = [add_assignment(client, cid, category="homework", name=f"HW{i}", max_points=10)
          for i in range(3)]
     # Scores 50%, 80%, 100% -> drop the 50%, keep (8+10)/(10+10) = 90%.
-    for aid, pts in zip(a, (5, 8, 10)):
+    for aid, pts in zip(a, (5, 8, 10), strict=False):
         client.post(f"/api/assignments/{aid}/grades", json={"student_id": sid, "points": pts})
     summary = client.get(f"/api/courses/{cid}/students/{sid}/grade").get_json()
     assert summary["categories"]["homework"]["percentage"] == 90.0

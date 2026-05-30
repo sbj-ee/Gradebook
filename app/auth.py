@@ -1,10 +1,19 @@
 import functools
 import hashlib
 import secrets
-from datetime import datetime, timedelta, timezone
+from datetime import UTC, datetime, timedelta
 
 from flask import (
-    Blueprint, abort, flash, g, redirect, render_template, request, session, url_for, jsonify
+    Blueprint,
+    abort,
+    flash,
+    g,
+    jsonify,
+    redirect,
+    render_template,
+    request,
+    session,
+    url_for,
 )
 from werkzeug.security import check_password_hash, generate_password_hash
 
@@ -23,7 +32,7 @@ def _hash_token(token):
 
 
 def _utc_now_str():
-    return datetime.now(timezone.utc).strftime(_RESET_TS_FORMAT)
+    return datetime.now(UTC).strftime(_RESET_TS_FORMAT)
 
 
 @bp.app_context_processor
@@ -203,7 +212,7 @@ def forgot_password():
         # message so the form can't be used to discover which accounts exist.
         if user is not None and user["email"]:
             token = secrets.token_urlsafe(32)
-            expires_at = (datetime.now(timezone.utc) + RESET_TTL).strftime(_RESET_TS_FORMAT)
+            expires_at = (datetime.now(UTC) + RESET_TTL).strftime(_RESET_TS_FORMAT)
             models.create_password_reset(user["id"], _hash_token(token), expires_at)
             reset_url = url_for("auth.reset_password", token=token, _external=True)
             notify_password_reset(user["id"], user["email"], user["username"], reset_url)

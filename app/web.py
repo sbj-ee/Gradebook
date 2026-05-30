@@ -1,8 +1,6 @@
 import re
 
-from flask import (
-    Blueprint, Response, abort, flash, g, redirect, render_template, request, url_for
-)
+from flask import Blueprint, Response, abort, flash, g, redirect, render_template, request, url_for
 from werkzeug.security import check_password_hash
 
 from . import importer, models, pdf
@@ -318,7 +316,7 @@ def edit_assignment(assignment_id):
     values = {
         "category": assignment["category"],
         "name": assignment["name"],
-        "max_points": "%g" % assignment["max_points"],
+        "max_points": "{:g}".format(assignment["max_points"]),
         "extra_credit": assignment["extra_credit"],
     }
     return render_template(

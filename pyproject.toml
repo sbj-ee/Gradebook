@@ -1,0 +1,11 @@
+[tool.ruff]
+line-length = 100
+target-version = "py312"
+
+[tool.ruff.lint]
+# pycodestyle errors/warnings, pyflakes, import sorting, pyupgrade, bugbear.
+select = ["E", "F", "W", "I", "UP", "B"]
+
+[tool.ruff.lint.per-file-ignores]
+# Tests keep one-line assertions (deep JSON indexing) over wrapping for length.
+"tests/*" = ["E741", "E501"]

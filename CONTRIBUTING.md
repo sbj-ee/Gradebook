@@ -59,6 +59,14 @@ pytest
 Tests live in `tests/` and use a throwaway temporary database per test (see
 `tests/conftest.py`), so they never touch your `instance/` data.
 
+Linting uses [ruff](https://docs.astral.sh/ruff/) (configured in `pyproject.toml`):
+
+```bash
+ruff check .        # or: ruff check --fix .
+```
+
+CI (`.github/workflows/ci.yml`) runs `ruff check` and `pytest` on every push and PR.
+
 ## Project layout
 
 | Path | Purpose |

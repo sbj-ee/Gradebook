@@ -7,7 +7,10 @@
       "Bash(git push *)",
       "Bash(/home/stevebj/GITHUB/PUBLIC/Reservations/.venv/bin/python -m pytest -q)",
       "Bash(python3 -)",
-      "Bash(/home/stevebj/GITHUB/PUBLIC/Reservations/.venv/bin/python -m pytest tests/test_csrf.py -q)"
+      "Bash(/home/stevebj/GITHUB/PUBLIC/Reservations/.venv/bin/python -m pytest tests/test_csrf.py -q)",
+      "Bash(/home/stevebj/GITHUB/PUBLIC/Reservations/.venv/bin/pip install *)",
+      "Bash(/home/stevebj/GITHUB/PUBLIC/Reservations/.venv/bin/ruff check *)",
+      "Bash(printf 'web: gunicorn wsgi:app --bind 0.0.0.0:$PORT --workers 4\\\\n')"
     ]
   }
 }

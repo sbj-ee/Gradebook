@@ -11,7 +11,7 @@ Text is restricted to Latin-1 (the core Helvetica font's encoding); helpers belo
 stick to ASCII punctuation so an unusual character can't raise at render time.
 """
 
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 
 from fpdf import FPDF
 
@@ -31,7 +31,7 @@ def _pct(value):
 
 
 def _timestamp():
-    return "Generated " + datetime.now(timezone.utc).strftime("%Y-%m-%d %H:%M UTC")
+    return "Generated " + datetime.now(UTC).strftime("%Y-%m-%d %H:%M UTC")
 
 
 def _new_pdf(orientation, title):

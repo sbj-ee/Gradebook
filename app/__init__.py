@@ -35,7 +35,7 @@ def create_app(test_config=None):
 
     os.makedirs(app.instance_path, exist_ok=True)
 
-    from . import db, auth, web, api, admin, csrf
+    from . import admin, api, auth, csrf, db, web
 
     db.init_app(app)
     csrf.init_csrf(app)

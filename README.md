@@ -5,6 +5,7 @@
 ![SQLite](https://img.shields.io/badge/SQLite-3-003B57.svg?logo=sqlite&logoColor=white)
 ![Gunicorn](https://img.shields.io/badge/server-gunicorn-499848.svg?logo=gunicorn&logoColor=white)
 ![Tests](https://img.shields.io/badge/tests-pytest-0A9EDC.svg?logo=pytest&logoColor=white)
+[![CI](https://github.com/sbj-ee/Gradebook/actions/workflows/ci.yml/badge.svg)](https://github.com/sbj-ee/Gradebook/actions/workflows/ci.yml)
 
 A small gradebook built with **Python, Flask, and SQLite**. Teachers register and log
 in, create **courses** (classes), enroll any number of **students**, add **assignments**
@@ -70,6 +71,13 @@ For local development with auto-reload you can instead use Flask's server:
 
 ```bash
 flask --app app run --debug
+```
+
+Or with Docker (a `Dockerfile` and `Procfile` are included):
+
+```bash
+docker build -t gradebook .
+docker run -p 8000:8000 -e SECRET_KEY="$(python -c 'import secrets; print(secrets.token_hex(32))')" gradebook
 ```
 
 ## How grading works

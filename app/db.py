@@ -199,7 +199,7 @@ def create_admin_command(username, password):
         )
         db.commit()
     except db.IntegrityError:
-        raise click.ClickException(f"User {username!r} already exists.")
+        raise click.ClickException(f"User {username!r} already exists.") from None
     click.echo(f"Created admin {username!r}.")
 
 

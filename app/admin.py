@@ -1,9 +1,7 @@
 import csv
 import io
 
-from flask import (
-    Blueprint, Response, abort, flash, g, redirect, render_template, request, url_for
-)
+from flask import Blueprint, Response, abort, flash, g, redirect, render_template, request, url_for
 
 from . import models
 from .auth import admin_required, download_admin_required

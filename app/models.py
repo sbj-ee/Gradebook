@@ -81,7 +81,7 @@ def _validate_drops(drops):
         try:
             n = int(drops.get(cat, 0) or 0)
         except (TypeError, ValueError):
-            raise ValueError("drop-lowest counts must be whole numbers")
+            raise ValueError("drop-lowest counts must be whole numbers") from None
         if n < 0:
             raise ValueError("drop-lowest counts cannot be negative")
         result[cat] = n
@@ -250,7 +250,7 @@ def create_student(course_id, student_code, name, email=None, phone=None):
         db.rollback()
         raise ValueError(
             f"student ID {student_code!r} is already enrolled in this course"
-        )
+        ) from None
     return student_id
 
 
@@ -272,7 +272,7 @@ def update_student(student_id, student_code, name, email=None, phone=None):
         )
         db.commit()
     except db.IntegrityError:
-        raise ValueError(f"student ID {student_code!r} is already in use")
+        raise ValueError(f"student ID {student_code!r} is already in use") from None
 
 
 def unenroll(course_id, student_id):
@@ -326,7 +326,7 @@ def _parse_max_points(value):
     try:
         points = float(value)
     except (TypeError, ValueError):
-        raise ValueError("max points must be a number")
+        raise ValueError("max points must be a number") from None
     if points <= 0:
         raise ValueError("max points must be greater than zero")
     return points
@@ -412,7 +412,7 @@ def set_grade(assignment_id, student_id, points):
     try:
         points = float(points)
     except (TypeError, ValueError):
-        raise ValueError("points must be a number")
+        raise ValueError("points must be a number") from None
     if points < 0:
         raise ValueError("points cannot be negative")
     if points > assignment["max_points"]:
@@ -733,7 +733,7 @@ def create_user(username, password_hash, email=None, phone=None):
         db.commit()
         return cur.lastrowid
     except db.IntegrityError as e:
-        raise ValueError(unique_violation_message(e))
+        raise ValueError(unique_violation_message(e)) from e
 
 
 def update_user_account(user_id, username, email, phone):
@@ -750,7 +750,7 @@ def update_user_account(user_id, username, email, phone):
         )
         db.commit()
     except db.IntegrityError as e:
-        raise ValueError(unique_violation_message(e))
+        raise ValueError(unique_violation_message(e)) from e
 
 
 def update_contact(user_id, email, phone):
@@ -764,7 +764,7 @@ def update_contact(user_id, email, phone):
         )
         db.commit()
     except db.IntegrityError as e:
-        raise ValueError(unique_violation_message(e))
+        raise ValueError(unique_violation_message(e)) from e
 
 
 def set_password(user_id, raw_password):
