@@ -4,6 +4,7 @@
   <h1>Forgot password</h1>
   <p class="muted">Enter your username or email and we'll send a reset link.</p>
   <form method="post" class="card">
+    {{ csrf_input() }}
     <label>Username or email
       <input name="identifier" required autofocus>
     </label>

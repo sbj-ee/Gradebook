@@ -3,6 +3,7 @@
 {% block content %}
   <h1>Log in</h1>
   <form method="post" class="card">
+    {{ csrf_input() }}
     <input type="hidden" name="next" value="{{ request.args.get('next', '') }}">
     <label>Username
       <input name="username" required autofocus>

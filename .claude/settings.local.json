@@ -6,7 +6,8 @@
       "Bash(git commit -q -m ' *)",
       "Bash(git push *)",
       "Bash(/home/stevebj/GITHUB/PUBLIC/Reservations/.venv/bin/python -m pytest -q)",
-      "Bash(python3 -)"
+      "Bash(python3 -)",
+      "Bash(/home/stevebj/GITHUB/PUBLIC/Reservations/.venv/bin/python -m pytest tests/test_csrf.py -q)"
     ]
   }
 }

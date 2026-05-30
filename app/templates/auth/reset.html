@@ -3,6 +3,7 @@
 {% block content %}
   <h1>Choose a new password</h1>
   <form method="post" class="card">
+    {{ csrf_input() }}
     <label>New password
       <input type="password" name="new_password" autocomplete="new-password" required autofocus>
     </label>

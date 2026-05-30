@@ -9,6 +9,7 @@
     · joined {{ user['created_at'] }}
   </p>
   <form method="post" class="card">
+    {{ csrf_input() }}
     <label>Username
       <input name="username" value="{{ values.get('username', '') }}" required autofocus>
     </label>

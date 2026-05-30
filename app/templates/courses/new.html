@@ -3,6 +3,7 @@
 {% block content %}
   <h1>New course</h1>
   <form method="post" class="card">
+    {{ csrf_input() }}
     <label>Name
       <input name="name" value="{{ form.get('name', '') }}" required autofocus>
     </label>

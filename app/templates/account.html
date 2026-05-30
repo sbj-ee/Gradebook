@@ -7,6 +7,7 @@
   <h2>Contact details</h2>
   <p class="muted">Your email is used for password recovery.</p>
   <form method="post" class="card">
+    {{ csrf_input() }}
     <input type="hidden" name="action" value="profile">
     <label>Email
       <input type="email" name="email" value="{{ g.user['email'] or '' }}">
@@ -19,6 +20,7 @@
 
   <h2>Change password</h2>
   <form method="post" class="card">
+    {{ csrf_input() }}
     <input type="hidden" name="action" value="password">
     <label>Current password
       <input type="password" name="current_password" autocomplete="current-password" required>

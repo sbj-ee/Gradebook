@@ -74,6 +74,7 @@ Tests live in `tests/` and use a throwaway temporary database per test (see
 | `app/admin.py` | Admin panel routes under `/admin`, CSV export, notifications log |
 | `app/pdf.py` | PDF exports (assignment results, full gradebook) via fpdf2 — IDs only |
 | `app/importer.py` | CSV import of rosters and per-assignment grades |
+| `app/csrf.py` | Session-based CSRF tokens for the server-rendered forms |
 | `app/notifications.py` | Email (SMTP) + SMS (Twilio) channels with log/audit fallback |
 | `app/templates/`, `app/static/` | Jinja templates and CSS |
 | `tests/` | pytest suite |
@@ -113,6 +114,11 @@ A few conventions worth knowing:
   gradebook, built with fpdf2) identifies students by their `student_id` only; keep it that
   way. Output is left uncompressed on purpose so tests can assert no name leaks into the
   bytes. Text uses the core Helvetica font, so stick to ASCII/Latin-1 punctuation.
+- **Every server-rendered POST form needs a CSRF token.** Drop `{{ csrf_input() }}` just
+  inside the `<form>` (see `app/csrf.py`); a `before_request` hook rejects unsafe-method
+  requests with a missing/invalid token. The `/api` blueprint is exempt (it authenticates
+  per request via cookie or HTTP Basic). Tests run with `CSRF_ENABLED=False`; `test_csrf.py`
+  covers the mechanism with it on.
 - **Notifications** fire from the route layer after a grade is posted/changed/removed via
   `app/notifications.py`. Email/SMS providers are configured with env vars (`MAIL_*`,
   `TWILIO_*`); when unset, messages are logged and recorded to the `notification` table, so

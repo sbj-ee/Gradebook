@@ -35,6 +35,8 @@ and is served with **gunicorn**.
 - PDF export of a single assignment's results, or the whole gradebook — **student IDs
   only, no names**, so results can be posted or shared
 - Email + SMS notifications to students when a grade is posted, changed, or removed
+- CSRF-protected forms, hardened session cookie, and downloads that 401 (not redirect)
+  when unauthenticated
 
 ## Setup
 

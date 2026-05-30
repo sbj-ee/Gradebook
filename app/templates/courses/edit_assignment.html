@@ -4,6 +4,7 @@
   <p><a href="{{ url_for('web.course_detail', course_id=course['id']) }}">&larr; {{ course['name'] }}</a></p>
   <h1>Edit assignment</h1>
   <form method="post" class="card">
+    {{ csrf_input() }}
     <label>Category
       <select name="category">
         {% for cat in categories %}

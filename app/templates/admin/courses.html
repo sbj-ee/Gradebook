@@ -43,6 +43,7 @@
               <a href="{{ url_for('web.course_detail', course_id=c['id']) }}">Open</a>
               <form method="post" action="{{ url_for('admin.delete_course', course_id=c['id']) }}"
                     onsubmit="return confirm('Delete {{ c['name'] }} and all its students, assignments, and grades?');">
+    {{ csrf_input() }}
                 <button type="submit" class="link-button danger">Delete</button>
               </form>
             </td>

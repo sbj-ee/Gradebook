@@ -80,6 +80,7 @@
                   <a href="{{ url_for('web.edit_student', course_id=course['id'], student_id=r.student['id']) }}">Edit</a>
                   <form method="post" action="{{ url_for('web.remove_student', course_id=course['id'], student_id=r.student['id']) }}"
                         onsubmit="return confirm('Remove {{ r.student['name'] }} from this course?');">
+    {{ csrf_input() }}
                     <button type="submit" class="link-button danger">Remove</button>
                   </form>
                 </td>
@@ -110,6 +111,7 @@
                 <a href="{{ url_for('web.export_assignment_pdf', assignment_id=a['id']) }}">PDF</a>
                 <form method="post" action="{{ url_for('web.delete_assignment', assignment_id=a['id']) }}"
                       onsubmit="return confirm('Delete {{ a['name'] }} and its grades?');">
+    {{ csrf_input() }}
                   <button type="submit" class="link-button danger">Delete</button>
                 </form>
               </td>
@@ -125,6 +127,7 @@
       <section>
         <h2>Add a student</h2>
         <form method="post" action="{{ url_for('web.add_student', course_id=course['id']) }}" class="card">
+    {{ csrf_input() }}
           <label>Student ID
             <input name="student_id" required>
           </label>
@@ -141,6 +144,7 @@
         </form>
         <form method="post" action="{{ url_for('web.import_roster', course_id=course['id']) }}"
               enctype="multipart/form-data" class="card" style="margin-top: 0.75rem;">
+    {{ csrf_input() }}
           <label>Import roster CSV <span class="muted">(columns: student_id, name, email, phone)</span>
             <input type="file" name="file" accept=".csv,text/csv" required>
           </label>
@@ -151,6 +155,7 @@
       <section>
         <h2>Add an assignment</h2>
         <form method="post" action="{{ url_for('web.add_assignment', course_id=course['id']) }}" class="card">
+    {{ csrf_input() }}
           <label>Category
             <select name="category">
               {% for cat in categories %}<option value="{{ cat }}">{{ category_labels[cat] }}</option>{% endfor %}

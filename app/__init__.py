@@ -8,6 +8,14 @@ def create_app(test_config=None):
     app.config.from_mapping(
         SECRET_KEY=os.environ.get("SECRET_KEY", "dev-change-me"),
         DATABASE=os.path.join(app.instance_path, "gradebook.sqlite"),
+        # CSRF protection for the server-rendered forms (the JSON API is exempt).
+        CSRF_ENABLED=True,
+        # Session cookie hardening. Secure is opt-in via env so local HTTP works;
+        # enable it in production (HTTPS). HttpOnly + SameSite are on by default.
+        SESSION_COOKIE_HTTPONLY=True,
+        SESSION_COOKIE_SAMESITE="Lax",
+        SESSION_COOKIE_SECURE=os.environ.get("SESSION_COOKIE_SECURE", "").lower()
+        in ("1", "true", "yes", "on"),
         # Email (SMTP) notification settings — optional; logged when unset.
         MAIL_SERVER=os.environ.get("MAIL_SERVER"),
         MAIL_PORT=int(os.environ.get("MAIL_PORT", "587")),
@@ -27,9 +35,10 @@ def create_app(test_config=None):
 
     os.makedirs(app.instance_path, exist_ok=True)
 
-    from . import db, auth, web, api, admin
+    from . import db, auth, web, api, admin, csrf
 
     db.init_app(app)
+    csrf.init_csrf(app)
     app.register_blueprint(auth.bp)
     app.register_blueprint(web.bp)
     app.register_blueprint(api.bp)

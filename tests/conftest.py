@@ -12,7 +12,8 @@ from app.db import get_db
 def app():
     db_fd, db_path = tempfile.mkstemp(suffix=".sqlite")
     app = create_app(
-        {"TESTING": True, "DATABASE": db_path, "SECRET_KEY": "test"}
+        {"TESTING": True, "DATABASE": db_path, "SECRET_KEY": "test",
+         "CSRF_ENABLED": False}
     )
     yield app
     os.close(db_fd)

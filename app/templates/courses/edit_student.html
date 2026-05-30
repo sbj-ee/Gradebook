@@ -5,6 +5,7 @@
   <h1>Edit student</h1>
   <p class="muted">This edits the student's shared record, so changes apply in every course they're enrolled in.</p>
   <form method="post" class="card">
+    {{ csrf_input() }}
     <label>Student ID
       <input name="student_id" value="{{ values.get('student_id', '') }}" required autofocus>
     </label>
