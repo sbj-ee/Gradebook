@@ -155,6 +155,14 @@ admin). **Neither prints student names — students are identified by their stud
   GET /courses/<id>/gradebook.pdf
   ```
 
+- **Per-student report card:** the **Report** link on each student opens a full breakdown
+  (every assignment by category, dropped scores marked, category subtotals, and the final
+  grade), with an **Export PDF** button.
+
+  ```
+  GET /courses/<id>/students/<id>/report.pdf
+  ```
+
 ## Notifications
 
 When a grade is **posted, changed, or removed**, the affected student is notified on every

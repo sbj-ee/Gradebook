@@ -215,6 +215,31 @@ def remove_student(course_id, student_id):
     return redirect(url_for("web.course_detail", course_id=course_id))
 
 
+@bp.route("/courses/<int:course_id>/students/<int:student_id>/report")
+@login_required
+def student_report(course_id, student_id):
+    course = models.get_course(course_id)
+    _require_course_edit(course)
+    report = models.student_report(course_id, student_id)
+    if report is None:
+        abort(404)
+    return render_template("courses/report.html", report=report, course=course)
+
+
+@bp.route("/courses/<int:course_id>/students/<int:student_id>/report.pdf")
+@login_required
+def export_student_report_pdf(course_id, student_id):
+    course = models.get_course(course_id)
+    _require_course_edit(course)
+    if not models.is_enrolled(course_id, student_id):
+        abort(404)
+    data = pdf.student_report_pdf(course_id, student_id)
+    student = models.get_student(student_id)
+    return _pdf_response(
+        data, _pdf_filename(course["name"], student["student_id"], "report")
+    )
+
+
 @bp.route("/courses/<int:course_id>/assignments", methods=("POST",))
 @login_required
 def add_assignment(course_id):

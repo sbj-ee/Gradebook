@@ -109,6 +109,57 @@ def assignment_results_pdf(assignment_id):
     return bytes(pdf.output())
 
 
+def student_report_pdf(course_id, student_id):
+    """Bytes of a one-student report card (ID only). Returns None if not enrolled."""
+    report = models.student_report(course_id, student_id)
+    if report is None:
+        return None
+    course = report["course"]
+
+    pdf = _new_pdf("P", f"{course['name']} - report card")
+    pdf.set_font("Helvetica", "B", 16)
+    pdf.cell(0, 10, course["name"], new_x="LMARGIN", new_y="NEXT")
+    pdf.set_font("Helvetica", "", 11)
+    pdf.cell(0, 7, f"Report card - Student {report['student']['student_id']}",
+             new_x="LMARGIN", new_y="NEXT")
+    _meta_line(pdf, _timestamp() + ". " + PRIVACY_NOTE)
+    pdf.ln(2)
+
+    for cat in report["categories"]:
+        pdf.set_font("Helvetica", "B", 12)
+        heading = f"{cat['label']}  (weight {cat['weight']}%"
+        heading += f", drop {cat['drop']} lowest)" if cat["drop"] else ")"
+        pdf.cell(0, 8, heading, new_x="LMARGIN", new_y="NEXT")
+        rows = [("Assignment", "Score", "Percent")]
+        for a in cat["assignments"]:
+            name = a["name"] + (" (EC)" if a["extra_credit"] else "")
+            if a["dropped"]:
+                name += " (dropped)"
+            if a["points"] is None:
+                rows.append((name, "-", "-"))
+            else:
+                rows.append((name, f"{_num(a['points'])} / {_num(a['max_points'])}",
+                             _pct(a["pct"])))
+        pdf.set_font("Helvetica", "", 10)
+        with pdf.table(col_widths=(60, 25, 20),
+                       text_align=("LEFT", "RIGHT", "RIGHT"),
+                       first_row_as_headings=True) as table:
+            for r in rows:
+                tr = table.row()
+                for cell in r:
+                    tr.cell(str(cell))
+        pdf.set_font("Helvetica", "I", 10)
+        pdf.cell(0, 7, f"  {cat['label']} total: {_pct(cat['pct'])}",
+                 new_x="LMARGIN", new_y="NEXT")
+        pdf.ln(2)
+
+    pdf.set_font("Helvetica", "B", 13)
+    final = _pct(report["final"]) if report["final"] is not None else "-"
+    letter = report["letter"] if report["final"] is not None else "-"
+    pdf.cell(0, 9, f"Final: {final}   Grade: {letter}", new_x="LMARGIN", new_y="NEXT")
+    return bytes(pdf.output())
+
+
 def gradebook_pdf(course_id):
     """Bytes of a PDF of the full gradebook grid (IDs only). Returns None if the
     course doesn't exist."""

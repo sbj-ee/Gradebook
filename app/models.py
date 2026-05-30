@@ -3,6 +3,7 @@ from werkzeug.security import generate_password_hash
 from .db import get_db
 from .utils import (
     CATEGORIES,
+    CATEGORY_LABELS,
     GRADING_SCALES,
     category_percentage,
     letter_grade,
@@ -475,6 +476,82 @@ def student_grade(course_id, student_id):
         ).fetchall()
     }
     return _summarize(student, assignments, grades, course)
+
+
+def student_report(course_id, student_id):
+    """Detailed per-assignment breakdown for one student in one course, grouped by
+    category, marking which scores were dropped. Returns None if not enrolled."""
+    student = get_student(student_id)
+    if student is None or not is_enrolled(course_id, student_id):
+        return None
+    course = get_course(course_id)
+    assignments = list_assignments(course_id)
+    weights = _course_weights(course)
+    drops = _course_drops(course)
+    db = get_db()
+    grades = {
+        r["assignment_id"]: r["points"]
+        for r in db.execute(
+            """SELECT g.assignment_id, g.points FROM grade g
+                 JOIN assignment a ON a.id = g.assignment_id
+                WHERE g.student_id = ? AND a.course_id = ?""",
+            (student_id, course_id),
+        ).fetchall()
+    }
+    pcts = {}
+    category_rows = []
+    for cat in CATEGORIES:
+        items, graded_regular = [], []
+        for a in assignments:
+            if a["category"] != cat:
+                continue
+            pts = grades.get(a["id"])
+            items.append({
+                "id": a["id"],
+                "name": a["name"],
+                "max_points": a["max_points"],
+                "extra_credit": bool(a["extra_credit"]),
+                "points": pts,
+                "pct": category_percentage(pts, a["max_points"]) if pts is not None else None,
+                "dropped": False,
+            })
+            if pts is not None and not a["extra_credit"]:
+                graded_regular.append((pts / a["max_points"], a["id"]))
+        n_drop = drops.get(cat, 0)
+        dropped_ids = set()
+        if n_drop and graded_regular:
+            graded_regular.sort(key=lambda t: t[0])
+            dropped_ids = {aid for _, aid in graded_regular[:n_drop]}
+        earned = possible = 0.0
+        for item in items:
+            if item["id"] in dropped_ids:
+                item["dropped"] = True
+                continue
+            if item["points"] is None:
+                continue
+            earned += item["points"]
+            if not item["extra_credit"]:
+                possible += item["max_points"]
+        pct = category_percentage(earned, possible)
+        pcts[cat] = pct
+        category_rows.append({
+            "key": cat,
+            "label": CATEGORY_LABELS[cat],
+            "weight": weights[cat],
+            "drop": n_drop,
+            "assignments": items,
+            "earned": earned,
+            "possible": possible,
+            "pct": pct,
+        })
+    final = weighted_final(pcts, weights)
+    return {
+        "course": course,
+        "student": student,
+        "categories": category_rows,
+        "final": final,
+        "letter": letter_grade(final, course["grading_scale"]),
+    }
 
 
 def _summarize(student, assignments, grades, course):

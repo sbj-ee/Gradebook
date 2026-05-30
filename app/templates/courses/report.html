@@ -1,0 +1,53 @@
+{% extends "base.html" %}
+{% block title %}Report · {{ report.student['name'] }}{% endblock %}
+{% block content %}
+  <p><a href="{{ url_for('web.course_detail', course_id=course['id']) }}">&larr; {{ course['name'] }}</a></p>
+  <div class="page-head">
+    <h1>Report card</h1>
+    <a class="button" href="{{ url_for('web.export_student_report_pdf', course_id=course['id'], student_id=report.student['id']) }}">Export PDF</a>
+  </div>
+  <p class="muted">
+    {{ report.student['name'] }} · Student ID <strong>{{ report.student['student_id'] }}</strong> · {{ course['name'] }}
+    {% if course['term'] %}({{ course['term'] }}){% endif %}.
+    The PDF export shows the student ID only.
+  </p>
+
+  {% for cat in report.categories %}
+    <h2>{{ cat.label }}
+      <span class="muted" style="font-size: 0.9rem; font-weight: 400;">
+        weight {{ cat.weight }}%{% if cat.drop %} · drop {{ cat.drop }} lowest{% endif %}
+      </span>
+    </h2>
+    {% if cat.assignments %}
+      <table class="grid">
+        <thead><tr><th>Assignment</th><th class="num">Score</th><th class="num">Percent</th></tr></thead>
+        <tbody>
+          {% for a in cat.assignments %}
+            <tr{% if a.dropped %} class="muted"{% endif %}>
+              <td>{{ a.name }}{% if a.extra_credit %} <span class="ec-tag">EC</span>{% endif %}{% if a.dropped %} <span class="muted">(dropped)</span>{% endif %}</td>
+              <td class="num">{% if a.points is not none %}{{ '%g'|format(a.points) }} / {{ '%g'|format(a.max_points) }}{% else %}<span class="muted">—</span>{% endif %}</td>
+              <td class="num">{% if a.pct is not none %}{{ '%g'|format(a.pct) }}%{% else %}<span class="muted">—</span>{% endif %}</td>
+            </tr>
+          {% endfor %}
+          <tr>
+            <td><strong>{{ cat.label }} total</strong></td>
+            <td></td>
+            <td class="num"><strong>{% if cat.pct is not none %}{{ '%g'|format(cat.pct) }}%{% else %}—{% endif %}</strong></td>
+          </tr>
+        </tbody>
+      </table>
+    {% else %}
+      <p class="muted">No {{ cat.label|lower }} yet.</p>
+    {% endif %}
+  {% endfor %}
+
+  <h2>Final</h2>
+  <p style="font-size: 1.2rem;">
+    {% if report.final is not none %}
+      <strong>{{ '%g'|format(report.final) }}%</strong>
+      <span class="letter letter-{{ report.letter[0] }}">{{ report.letter }}</span>
+    {% else %}
+      <span class="muted">No grades yet.</span>
+    {% endif %}
+  </p>
+{% endblock %}
