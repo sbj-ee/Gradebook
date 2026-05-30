@@ -18,6 +18,12 @@ def course_json(row):
             "quiz": row["quiz_weight"],
             "exam": row["exam_weight"],
         },
+        "grading_scale": row["grading_scale"],
+        "drop_lowest": {
+            "homework": row["drop_lowest_homework"],
+            "quiz": row["drop_lowest_quiz"],
+            "exam": row["drop_lowest_exam"],
+        },
         "created_by": row["created_by"],
         "created_at": row["created_at"],
     }
@@ -118,6 +124,8 @@ def create_course():
             weights.get("quiz", 20),
             weights.get("exam", 40),
             g.user["id"],
+            grading_scale=data.get("grading_scale", "standard"),
+            drops=data.get("drop_lowest"),
         )
     except (ValueError, models.WeightError) as e:
         return error(str(e), 400)

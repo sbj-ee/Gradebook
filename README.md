@@ -77,10 +77,13 @@ three weights must add up to 100. For a given student:
 1. A **category percentage** is the points they earned divided by the points possible
    across the assignments they were graded on, in that category. Assignments a student
    hasn't been graded on don't count against them.
-2. The **final percentage** is the weighted average of the categories that have at least
+2. Optionally, the **lowest N scores are dropped** from each category before averaging
+   (configured per course). Extra-credit assignments are never dropped.
+3. The **final percentage** is the weighted average of the categories that have at least
    one grade. Empty categories are excluded and the surviving weights are renormalized, so
    a student isn't penalized for work that hasn't been assigned or graded yet.
-3. The **letter grade** is the usual 90/80/70/60 cutoff for A/B/C/D, else F.
+4. The **letter grade** uses the course's chosen scale: **standard** (90/80/70/60 →
+   A/B/C/D, else F) or **plus/minus** (A+, A, A-, B+, … with the usual cutoffs).
 
 For example, with weights 40/20/40 and scores of 90% homework, 80% quizzes, 70% exams:
 `(90·40 + 80·20 + 70·40) / 100 = 80.0` → **B**. If only homework has been graded, the

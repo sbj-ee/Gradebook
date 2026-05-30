@@ -3,6 +3,7 @@ from werkzeug.security import generate_password_hash
 from .db import get_db
 from .utils import (
     CATEGORIES,
+    GRADING_SCALES,
     category_percentage,
     letter_grade,
     parse_weights,
@@ -64,18 +65,45 @@ def _validate_weights(homework, quiz, exam):
     return homework, quiz, exam
 
 
-def create_course(name, description, term, homework_weight, quiz_weight, exam_weight, created_by):
+def _validate_scale(grading_scale):
+    grading_scale = (grading_scale or "standard").strip().lower()
+    if grading_scale not in GRADING_SCALES:
+        raise ValueError("invalid grading scale")
+    return grading_scale
+
+
+def _validate_drops(drops):
+    """Coerce the per-category drop-lowest counts to non-negative ints."""
+    drops = drops or {}
+    result = {}
+    for cat in CATEGORIES:
+        try:
+            n = int(drops.get(cat, 0) or 0)
+        except (TypeError, ValueError):
+            raise ValueError("drop-lowest counts must be whole numbers")
+        if n < 0:
+            raise ValueError("drop-lowest counts cannot be negative")
+        result[cat] = n
+    return result
+
+
+def create_course(name, description, term, homework_weight, quiz_weight, exam_weight,
+                  created_by, grading_scale="standard", drops=None):
     name = (name or "").strip()
     if not name:
         raise ValueError("name is required")
     homework_weight, quiz_weight, exam_weight = _validate_weights(
         homework_weight, quiz_weight, exam_weight
     )
+    grading_scale = _validate_scale(grading_scale)
+    drops = _validate_drops(drops)
     db = get_db()
     cur = db.execute(
         """INSERT INTO course
-             (name, description, term, homework_weight, quiz_weight, exam_weight, created_by)
-           VALUES (?, ?, ?, ?, ?, ?, ?)""",
+             (name, description, term, homework_weight, quiz_weight, exam_weight,
+              grading_scale, drop_lowest_homework, drop_lowest_quiz, drop_lowest_exam,
+              created_by)
+           VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)""",
         (
             name,
             (description or "").strip(),
@@ -83,6 +111,10 @@ def create_course(name, description, term, homework_weight, quiz_weight, exam_we
             homework_weight,
             quiz_weight,
             exam_weight,
+            grading_scale,
+            drops["homework"],
+            drops["quiz"],
+            drops["exam"],
             created_by,
         ),
     )
@@ -90,18 +122,23 @@ def create_course(name, description, term, homework_weight, quiz_weight, exam_we
     return cur.lastrowid
 
 
-def update_course(course_id, name, description, term, homework_weight, quiz_weight, exam_weight):
+def update_course(course_id, name, description, term, homework_weight, quiz_weight,
+                  exam_weight, grading_scale="standard", drops=None):
     name = (name or "").strip()
     if not name:
         raise ValueError("name is required")
     homework_weight, quiz_weight, exam_weight = _validate_weights(
         homework_weight, quiz_weight, exam_weight
     )
+    grading_scale = _validate_scale(grading_scale)
+    drops = _validate_drops(drops)
     db = get_db()
     db.execute(
         """UPDATE course
               SET name = ?, description = ?, term = ?,
-                  homework_weight = ?, quiz_weight = ?, exam_weight = ?
+                  homework_weight = ?, quiz_weight = ?, exam_weight = ?,
+                  grading_scale = ?, drop_lowest_homework = ?, drop_lowest_quiz = ?,
+                  drop_lowest_exam = ?
             WHERE id = ?""",
         (
             name,
@@ -110,6 +147,10 @@ def update_course(course_id, name, description, term, homework_weight, quiz_weig
             homework_weight,
             quiz_weight,
             exam_weight,
+            grading_scale,
+            drops["homework"],
+            drops["quiz"],
+            drops["exam"],
             course_id,
         ),
     )
@@ -406,6 +447,14 @@ def _course_weights(course):
     }
 
 
+def _course_drops(course):
+    return {
+        "homework": course["drop_lowest_homework"],
+        "quiz": course["drop_lowest_quiz"],
+        "exam": course["drop_lowest_exam"],
+    }
+
+
 def student_grade(course_id, student_id):
     """Computed grade summary for one student in one course: per-category
     percentages, the weighted final, and a letter. Returns None if the student
@@ -425,25 +474,39 @@ def student_grade(course_id, student_id):
             (student_id, course_id),
         ).fetchall()
     }
-    return _summarize(student, assignments, grades, _course_weights(course))
+    return _summarize(student, assignments, grades, course)
 
 
-def _summarize(student, assignments, grades, weights):
-    """Build a student's grade summary from in-memory rows (no further queries)."""
+def _summarize(student, assignments, grades, course):
+    """Build a student's grade summary from in-memory rows (no further queries).
+
+    Within each category the N lowest-scoring regular assignments are dropped
+    (``drop_lowest_*``); extra-credit work is never dropped and adds to the
+    numerator only.
+    """
+    weights = _course_weights(course)
+    drops = _course_drops(course)
     categories = {}
     for category in CATEGORIES:
-        earned = possible = 0.0
+        regular = []        # (fraction, earned, max) for graded non-EC assignments
+        extra_earned = 0.0  # graded extra-credit points
         for a in assignments:
             if a["category"] != category:
                 continue
             points = grades.get(a["id"])
             if points is None:
                 continue
-            earned += points
-            # Extra-credit work boosts the numerator but not the possible total,
-            # so it can lift a category's percentage (potentially past 100%).
-            if not a["extra_credit"]:
-                possible += a["max_points"]
+            if a["extra_credit"]:
+                extra_earned += points
+            else:
+                regular.append((points / a["max_points"], points, a["max_points"]))
+        # Drop the lowest-scoring regular assignments for this category.
+        n_drop = drops.get(category, 0)
+        if n_drop and regular:
+            regular.sort(key=lambda t: t[0])
+            regular = regular[n_drop:]
+        earned = sum(e for _, e, _ in regular) + extra_earned
+        possible = sum(m for _, _, m in regular)
         categories[category] = {
             "earned": earned,
             "possible": possible,
@@ -456,7 +519,7 @@ def _summarize(student, assignments, grades, weights):
         "grades": grades,
         "categories": categories,
         "final": final,
-        "letter": letter_grade(final),
+        "letter": letter_grade(final, course["grading_scale"]),
     }
 
 
@@ -469,7 +532,6 @@ def course_gradebook(course_id):
         return None
     students = list_students(course_id)
     assignments = list_assignments(course_id)
-    weights = _course_weights(course)
     db = get_db()
     grade_rows = db.execute(
         """SELECT g.student_id, g.assignment_id, g.points
@@ -481,13 +543,14 @@ def course_gradebook(course_id):
     for r in grade_rows:
         by_student.setdefault(r["student_id"], {})[r["assignment_id"]] = r["points"]
     rows = [
-        _summarize(s, assignments, by_student.get(s["id"], {}), weights)
+        _summarize(s, assignments, by_student.get(s["id"], {}), course)
         for s in students
     ]
     return {
         "course": course,
         "assignments": assignments,
-        "weights": weights,
+        "weights": _course_weights(course),
+        "drops": _course_drops(course),
         "rows": rows,
     }
 

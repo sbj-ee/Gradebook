@@ -57,6 +57,18 @@ def _migrate(db):
         db.execute(
             "ALTER TABLE assignment ADD COLUMN extra_credit INTEGER NOT NULL DEFAULT 0"
         )
+    # Grading scale + drop-lowest options added to courses after release.
+    ccols = {r["name"] for r in db.execute("PRAGMA table_info(course)").fetchall()}
+    if ccols and "grading_scale" not in ccols:
+        db.execute(
+            "ALTER TABLE course ADD COLUMN grading_scale TEXT NOT NULL DEFAULT 'standard'"
+        )
+    for cat in ("homework", "quiz", "exam"):
+        col = f"drop_lowest_{cat}"
+        if ccols and col not in ccols:
+            db.execute(
+                f"ALTER TABLE course ADD COLUMN {col} INTEGER NOT NULL DEFAULT 0"
+            )
     # Split the original per-course student table into a global student record plus
     # an enrollment join, so one student can belong to several courses.
     scols = {r["name"] for r in db.execute("PRAGMA table_info(student)").fetchall()}

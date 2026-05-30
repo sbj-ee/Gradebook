@@ -56,6 +56,15 @@ def test_letter_grade_none():
     assert letter_grade(None) == "—"
 
 
+@pytest.mark.parametrize(
+    "pct,letter",
+    [(98, "A+"), (95, "A"), (91, "A-"), (88, "B+"), (83, "B"), (80, "B-"),
+     (72, "C-"), (61, "D-"), (59, "F")],
+)
+def test_letter_grade_plus_minus(pct, letter):
+    assert letter_grade(pct, "plus_minus") == letter
+
+
 def test_parse_weights_rejects_non_integers():
     with pytest.raises(ValueError):
         parse_weights("a", 20, 40)

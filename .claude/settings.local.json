@@ -4,7 +4,8 @@
       "Bash(cd *)",
       "Bash(git add *)",
       "Bash(git commit -q -m ' *)",
-      "Bash(git push *)"
+      "Bash(git push *)",
+      "Bash(/home/stevebj/GITHUB/PUBLIC/Reservations/.venv/bin/python -m pytest -q)"
     ]
   }
 }

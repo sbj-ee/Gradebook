@@ -20,6 +20,21 @@ CATEGORY_LABELS = {
     "exam": "Exams",
 }
 
+# Supported letter-grade scales.
+GRADING_SCALES = ("standard", "plus_minus")
+GRADING_SCALE_LABELS = {
+    "standard": "Standard (A B C D F)",
+    "plus_minus": "Plus / minus (A+ A A- …)",
+}
+
+# (cutoff, letter) pairs in descending order for the plus/minus scale.
+_PLUS_MINUS = (
+    (97, "A+"), (93, "A"), (90, "A-"),
+    (87, "B+"), (83, "B"), (80, "B-"),
+    (77, "C+"), (73, "C"), (70, "C-"),
+    (67, "D+"), (63, "D"), (60, "D-"),
+)
+
 
 def category_percentage(earned, possible):
     """Percentage earned in a category, or None when nothing has been graded."""
@@ -50,10 +65,16 @@ def weighted_final(category_pcts, weights):
     return round(accumulated / total_weight, 2)
 
 
-def letter_grade(pct):
-    """Map a percentage to a letter grade. None (no grades) renders as an em dash."""
+def letter_grade(pct, scale="standard"):
+    """Map a percentage to a letter grade for the given scale. None (no grades)
+    renders as an em dash."""
     if pct is None:
         return "—"
+    if scale == "plus_minus":
+        for cutoff, letter in _PLUS_MINUS:
+            if pct >= cutoff:
+                return letter
+        return "F"
     if pct >= 90:
         return "A"
     if pct >= 80:

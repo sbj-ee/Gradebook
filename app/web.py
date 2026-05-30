@@ -8,9 +8,19 @@ from werkzeug.security import check_password_hash
 from . import models, pdf
 from .auth import login_required
 from .notifications import notify_grade_event
-from .utils import CATEGORIES, CATEGORY_LABELS
+from .utils import CATEGORIES, CATEGORY_LABELS, GRADING_SCALE_LABELS
 
 bp = Blueprint("web", __name__)
+
+
+@bp.app_context_processor
+def inject_grading_options():
+    # Available to every template (course create/edit forms use the scale labels).
+    return {
+        "categories": CATEGORIES,
+        "category_labels": CATEGORY_LABELS,
+        "scale_labels": GRADING_SCALE_LABELS,
+    }
 
 
 def _pdf_filename(*parts):
@@ -47,6 +57,10 @@ def list_courses():
     return render_template("courses/list.html", courses=models.list_courses())
 
 
+def _drops_from_form():
+    return {cat: request.form.get(f"drop_lowest_{cat}") for cat in CATEGORIES}
+
+
 @bp.route("/courses/new", methods=("GET", "POST"))
 @login_required
 def new_course():
@@ -60,6 +74,8 @@ def new_course():
                 request.form.get("quiz_weight"),
                 request.form.get("exam_weight"),
                 g.user["id"],
+                grading_scale=request.form.get("grading_scale"),
+                drops=_drops_from_form(),
             )
         except (ValueError, models.WeightError) as e:
             flash(str(e))
@@ -107,6 +123,8 @@ def edit_course(course_id):
                 request.form.get("homework_weight"),
                 request.form.get("quiz_weight"),
                 request.form.get("exam_weight"),
+                grading_scale=request.form.get("grading_scale"),
+                drops=_drops_from_form(),
             )
             flash("Course updated.")
             return redirect(url_for("web.course_detail", course_id=course_id))
@@ -120,6 +138,10 @@ def edit_course(course_id):
         "homework_weight": course["homework_weight"],
         "quiz_weight": course["quiz_weight"],
         "exam_weight": course["exam_weight"],
+        "grading_scale": course["grading_scale"],
+        "drop_lowest_homework": course["drop_lowest_homework"],
+        "drop_lowest_quiz": course["drop_lowest_quiz"],
+        "drop_lowest_exam": course["drop_lowest_exam"],
     }
     return render_template("courses/edit.html", course=course, values=values)
 

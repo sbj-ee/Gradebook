@@ -24,6 +24,25 @@
         <input type="number" name="exam_weight" min="0" max="100" value="{{ form.get('exam_weight', '40') }}" required>
       </label>
     </div>
+    <label>Grading scale
+      <select name="grading_scale">
+        {% for key, label in scale_labels.items() %}
+          <option value="{{ key }}" {% if form.get('grading_scale', 'standard') == key %}selected{% endif %}>{{ label }}</option>
+        {% endfor %}
+      </select>
+    </label>
+    <p class="muted">Drop the lowest N scores in each category (0 = keep all).</p>
+    <div class="weights">
+      <label>Drop HW
+        <input type="number" name="drop_lowest_homework" min="0" value="{{ form.get('drop_lowest_homework', '0') }}">
+      </label>
+      <label>Drop quizzes
+        <input type="number" name="drop_lowest_quiz" min="0" value="{{ form.get('drop_lowest_quiz', '0') }}">
+      </label>
+      <label>Drop exams
+        <input type="number" name="drop_lowest_exam" min="0" value="{{ form.get('drop_lowest_exam', '0') }}">
+      </label>
+    </div>
     <button type="submit">Create</button>
   </form>
 {% endblock %}

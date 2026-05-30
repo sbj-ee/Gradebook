@@ -27,6 +27,12 @@ CREATE TABLE course (
   homework_weight INTEGER NOT NULL DEFAULT 40,
   quiz_weight INTEGER NOT NULL DEFAULT 20,
   exam_weight INTEGER NOT NULL DEFAULT 40,
+  -- Letter-grade scale ('standard' or 'plus_minus') and the number of lowest-
+  -- scoring assignments to drop from each category before averaging.
+  grading_scale TEXT NOT NULL DEFAULT 'standard',
+  drop_lowest_homework INTEGER NOT NULL DEFAULT 0,
+  drop_lowest_quiz INTEGER NOT NULL DEFAULT 0,
+  drop_lowest_exam INTEGER NOT NULL DEFAULT 0,
   created_by INTEGER,
   created_at TEXT NOT NULL DEFAULT (datetime('now')),
   FOREIGN KEY (created_by) REFERENCES user (id)

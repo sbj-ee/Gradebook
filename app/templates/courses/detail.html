@@ -16,6 +16,10 @@
     A category with no graded work is dropped and the rest are renormalized.
     Extra-credit assignments (<span class="ec-tag">EC</span>) add to their category's
     earned points without raising its total.
+    {% set d = book.drops %}
+    {% if d.homework or d.quiz or d.exam %}
+      Dropping the lowest{% if d.homework %} {{ d.homework }} homework{% endif %}{% if d.quiz %} {{ d.quiz }} quiz{% endif %}{% if d.exam %} {{ d.exam }} exam{% endif %} score(s) per student.
+    {% endif %}
   </p>
 
   <div class="page-head">
@@ -67,7 +71,7 @@
                 {% if r.final is not none %}{{ '%g'|format(r.final) }}{% else %}<span class="muted">—</span>{% endif %}
               </td>
               <td>
-                {% if r.final is not none %}<span class="letter letter-{{ r.letter }}">{{ r.letter }}</span>
+                {% if r.final is not none %}<span class="letter letter-{{ r.letter[0] }}">{{ r.letter }}</span>
                 {% else %}<span class="muted">—</span>{% endif %}
               </td>
               {% if can_edit %}
