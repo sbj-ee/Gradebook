@@ -8,6 +8,13 @@
     Leave a field blank to clear that grade.
   </p>
   <p><a href="{{ url_for('web.export_assignment_pdf', assignment_id=assignment['id']) }}">Export results PDF</a> (student IDs only)</p>
+  <form method="post" action="{{ url_for('web.import_grades', assignment_id=assignment['id']) }}"
+        enctype="multipart/form-data" class="card" style="max-width: 520px;">
+    <label>Import grades CSV <span class="muted">(columns: student_id, points; blank points clears)</span>
+      <input type="file" name="file" accept=".csv,text/csv" required>
+    </label>
+    <button type="submit">Import grades</button>
+  </form>
   {% if students %}
     <form method="post" class="card" style="max-width: 520px;">
       <table class="grid">

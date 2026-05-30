@@ -251,6 +251,16 @@ td.actions { display: flex; gap: 0.75rem; align-items: center; }
 td.actions form { margin: 0; }
 .link-button.danger { color: #b91c1c; }
 
+/* Two add/import columns shown side by side, stacking on narrow screens. */
+.form-row {
+  display: flex;
+  gap: 1.5rem;
+  flex-wrap: wrap;
+  align-items: flex-start;
+}
+.form-row > section { flex: 1 1 320px; min-width: 280px; }
+.form-row .card { max-width: none; }
+
 .weights {
   display: flex;
   gap: 1rem;

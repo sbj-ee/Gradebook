@@ -30,7 +30,8 @@ and is served with **gunicorn**.
 - Admin control panel at `/admin` to manage users and courses
 - Self-service account page (`/account`): update your email/phone and change your password
 - Last-login tracking: shown as a "welcome back" banner on sign-in and in the admin user list
-- CSV export of grades (optionally filtered by course / category)
+- CSV **import** of a roster (`student_id, name, email, phone`) and of per-assignment
+  grades (`student_id, points`), and CSV **export** of grades (filterable by course / category)
 - PDF export of a single assignment's results, or the whole gradebook — **student IDs
   only, no names**, so results can be posted or shared
 - Email + SMS notifications to students when a grade is posted, changed, or removed
@@ -133,6 +134,14 @@ Excel detect the encoding automatically when the file is opened directly. The fi
 the header. If a spreadsheet app drops the header on import, check its text-import dialog —
 in LibreOffice's *Text Import* dialog make sure **From row** is `1` (it remembers the last
 value used) and the **Separator** is **Comma**.
+
+### CSV import
+
+To populate a course quickly, the course page has an **Import roster CSV** form
+(`student_id, name, email, phone` — headers are matched case-insensitively and a UTF-8 BOM
+is tolerated), and each assignment's grade-entry page has an **Import grades CSV** form
+(`student_id, points`; a blank `points` clears that grade). Both report how many rows were
+applied, skipped, or failed, and a bad row never aborts the rest of the file.
 
 ### PDF exports
 
@@ -250,6 +259,7 @@ app/
   api.py           JSON API routes (/api)
   admin.py         admin control panel routes (/admin) + CSV export + notifications log
   pdf.py           PDF exports (assignment results, full gradebook) — IDs only, no names
+  importer.py      CSV import of rosters and per-assignment grades
   notifications.py email (SMTP) + SMS (Twilio) channels with log/audit fallback
   templates/       Jinja templates
   static/          style.css + tz.js (UTC→local) + favicon/logo

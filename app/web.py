@@ -5,7 +5,7 @@ from flask import (
 )
 from werkzeug.security import check_password_hash
 
-from . import models, pdf
+from . import importer, models, pdf
 from .auth import login_required
 from .notifications import notify_grade_event
 from .utils import CATEGORIES, CATEGORY_LABELS, GRADING_SCALE_LABELS
@@ -162,6 +162,23 @@ def add_student(course_id):
         flash("Student added.")
     except ValueError as e:
         flash(str(e))
+    return redirect(url_for("web.course_detail", course_id=course_id))
+
+
+@bp.route("/courses/<int:course_id>/import-roster", methods=("POST",))
+@login_required
+def import_roster(course_id):
+    course = models.get_course(course_id)
+    _require_course_edit(course)
+    file = request.files.get("file")
+    if not file or not file.filename:
+        flash("Choose a CSV file to import.")
+        return redirect(url_for("web.course_detail", course_id=course_id))
+    result = importer.import_roster(course_id, file)
+    flash(f"Roster import: {result['added']} added, "
+          f"{result['skipped']} already enrolled, {len(result['errors'])} error(s).")
+    for message in result["errors"][:10]:
+        flash(message)
     return redirect(url_for("web.course_detail", course_id=course_id))
 
 
@@ -362,6 +379,26 @@ def grade_assignment(assignment_id):
         students=students,
         current=current,
     )
+
+
+@bp.route("/assignments/<int:assignment_id>/import-grades", methods=("POST",))
+@login_required
+def import_grades(assignment_id):
+    assignment = models.get_assignment(assignment_id)
+    if assignment is None:
+        abort(404)
+    course = models.get_course(assignment["course_id"])
+    _require_course_edit(course)
+    file = request.files.get("file")
+    if not file or not file.filename:
+        flash("Choose a CSV file to import.")
+        return redirect(url_for("web.grade_assignment", assignment_id=assignment_id))
+    result = importer.import_grades(assignment_id, file)
+    flash(f"Grade import: {result['updated']} set, "
+          f"{result['cleared']} cleared, {len(result['errors'])} error(s).")
+    for message in result["errors"][:10]:
+        flash(message)
+    return redirect(url_for("web.grade_assignment", assignment_id=assignment_id))
 
 
 @bp.route("/assignments/<int:assignment_id>/results.pdf")

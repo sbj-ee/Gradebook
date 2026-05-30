@@ -73,6 +73,7 @@ Tests live in `tests/` and use a throwaway temporary database per test (see
 | `app/api.py` | JSON API routes under `/api` |
 | `app/admin.py` | Admin panel routes under `/admin`, CSV export, notifications log |
 | `app/pdf.py` | PDF exports (assignment results, full gradebook) via fpdf2 — IDs only |
+| `app/importer.py` | CSV import of rosters and per-assignment grades |
 | `app/notifications.py` | Email (SMTP) + SMS (Twilio) channels with log/audit fallback |
 | `app/templates/`, `app/static/` | Jinja templates and CSS |
 | `tests/` | pytest suite |

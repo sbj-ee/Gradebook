@@ -121,42 +121,55 @@
       <p class="muted">No assignments yet.</p>
     {% endif %}
 
-    <h2>Add a student</h2>
-    <form method="post" action="{{ url_for('web.add_student', course_id=course['id']) }}" class="card">
-      <label>Student ID
-        <input name="student_id" required>
-      </label>
-      <label>Name
-        <input name="name" required>
-      </label>
-      <label>Email (optional, for grade notifications)
-        <input type="email" name="email">
-      </label>
-      <label>Phone (optional, for SMS notifications)
-        <input type="tel" name="phone" placeholder="+15551234567">
-      </label>
-      <button type="submit">Add student</button>
-    </form>
+    <div class="form-row">
+      <section>
+        <h2>Add a student</h2>
+        <form method="post" action="{{ url_for('web.add_student', course_id=course['id']) }}" class="card">
+          <label>Student ID
+            <input name="student_id" required>
+          </label>
+          <label>Name
+            <input name="name" required>
+          </label>
+          <label>Email (optional, for grade notifications)
+            <input type="email" name="email">
+          </label>
+          <label>Phone (optional, for SMS notifications)
+            <input type="tel" name="phone" placeholder="+15551234567">
+          </label>
+          <button type="submit">Add student</button>
+        </form>
+        <form method="post" action="{{ url_for('web.import_roster', course_id=course['id']) }}"
+              enctype="multipart/form-data" class="card" style="margin-top: 0.75rem;">
+          <label>Import roster CSV <span class="muted">(columns: student_id, name, email, phone)</span>
+            <input type="file" name="file" accept=".csv,text/csv" required>
+          </label>
+          <button type="submit">Import roster</button>
+        </form>
+      </section>
 
-    <h2>Add an assignment</h2>
-    <form method="post" action="{{ url_for('web.add_assignment', course_id=course['id']) }}" class="card">
-      <label>Category
-        <select name="category">
-          {% for cat in categories %}<option value="{{ cat }}">{{ category_labels[cat] }}</option>{% endfor %}
-        </select>
-      </label>
-      <label>Name
-        <input name="name" required>
-      </label>
-      <label>Max points
-        <input type="number" name="max_points" min="0" step="0.01" value="100" required>
-      </label>
-      <label class="check">
-        <input type="checkbox" name="extra_credit" value="1">
-        Extra credit (bonus — adds to the category's earned points, not its total)
-      </label>
-      <button type="submit">Add assignment</button>
-    </form>
+      <section>
+        <h2>Add an assignment</h2>
+        <form method="post" action="{{ url_for('web.add_assignment', course_id=course['id']) }}" class="card">
+          <label>Category
+            <select name="category">
+              {% for cat in categories %}<option value="{{ cat }}">{{ category_labels[cat] }}</option>{% endfor %}
+            </select>
+          </label>
+          <label>Name
+            <input name="name" required>
+          </label>
+          <label>Max points
+            <input type="number" name="max_points" min="0" step="0.01" value="100" required>
+          </label>
+          <label class="check">
+            <input type="checkbox" name="extra_credit" value="1">
+            Extra credit (bonus — adds to the category's earned points, not its total)
+          </label>
+          <button type="submit">Add assignment</button>
+        </form>
+      </section>
+    </div>
   {% elif g.user is none %}
     <p><a href="{{ url_for('auth.login', next=request.path) }}">Log in</a> to manage a course you teach.</p>
   {% endif %}
