@@ -26,7 +26,6 @@ def course_json(row):
 def student_json(row):
     return {
         "id": row["id"],
-        "course_id": row["course_id"],
         "student_id": row["student_id"],
         "name": row["name"],
         "email": row["email"],
@@ -87,6 +86,14 @@ def _require_course_edit(course):
     if not (g.user["is_admin"] or course["created_by"] == g.user["id"]):
         return error("forbidden", 403)
     return None
+
+
+def _teaches_enrolled_course(student_id):
+    """True if the current user created any course the student is enrolled in."""
+    return any(
+        c["created_by"] == g.user["id"]
+        for c in models.courses_for_student(student_id)
+    )
 
 
 # --- Courses ---------------------------------------------------------------
@@ -173,11 +180,34 @@ def create_student(course_id):
     return jsonify(student_json(models.get_student(student_id))), 201
 
 
-@bp.route("/students/<int:student_id>/grade", methods=("GET",))
-def student_grade(student_id):
-    summary = models.student_grade(student_id)
-    if summary is None:
+@bp.route("/students/<int:student_id>", methods=("PUT",))
+@api_auth_required
+def update_student(student_id):
+    student = models.get_student(student_id)
+    if student is None:
         return error("student not found", 404)
+    # Editing the global student record requires editing a course they're in.
+    if not (g.user["is_admin"] or _teaches_enrolled_course(student_id)):
+        return error("forbidden", 403)
+    data = request.get_json(silent=True) or {}
+    try:
+        models.update_student(
+            student_id,
+            data.get("student_id", student["student_id"]),
+            data.get("name", student["name"]),
+            data.get("email", student["email"]),
+            data.get("phone", student["phone"]),
+        )
+    except ValueError as e:
+        return error(str(e), 400)
+    return jsonify(student_json(models.get_student(student_id)))
+
+
+@bp.route("/courses/<int:course_id>/students/<int:student_id>/grade", methods=("GET",))
+def student_grade(course_id, student_id):
+    summary = models.student_grade(course_id, student_id)
+    if summary is None:
+        return error("student not enrolled in this course", 404)
     return jsonify(summary_json(summary))
 
 

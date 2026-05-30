@@ -20,7 +20,8 @@ and is served with **gunicorn**.
 - Self-service "forgot password": a single-use, time-limited reset link sent by email
 - Courses: anyone can browse; logged-in users create and manage their own
 - **Configurable weighting** per course for homework, quizzes, and exams (must total 100)
-- Variable-size rosters: enroll any number of students, each with a visible **student ID**
+- Variable-size rosters: enroll any number of students, each with a visible **student ID**;
+  a student is a shared record (editable anytime) and can be enrolled in multiple courses
 - Assignments with a category and max points; grades are bounded to `0..max`
 - **Automatic grade computation**: per-category percentages, a weighted final, and a
   letter grade — a category with no graded work is dropped and the rest renormalized
@@ -188,11 +189,12 @@ admin. `GET` endpoints are public.
 | GET | `/api/courses/<id>` | no | Course detail + its students and assignments |
 | GET | `/api/courses/<id>/gradebook` | no | Computed gradebook (every student's totals) |
 | GET | `/api/courses/<id>/students` | no | List a course's students |
-| POST | `/api/courses/<id>/students` | owner | Enroll a student (`{student_id, name, email, phone}`) |
+| POST | `/api/courses/<id>/students` | owner | Enroll a student (`{student_id, name, email, phone}`); reuses an existing student ID |
+| PUT | `/api/students/<id>` | owner | Edit a student's shared record (`{student_id, name, email, phone}`) |
 | GET | `/api/courses/<id>/assignments` | no | List a course's assignments |
 | POST | `/api/courses/<id>/assignments` | owner | Add an assignment (`{category, name, max_points}`) |
 | POST | `/api/assignments/<id>/grades` | owner | Set a grade (`{student_id, points}`) — `400` if out of range |
-| GET | `/api/students/<id>/grade` | no | A single student's computed grade summary |
+| GET | `/api/courses/<id>/students/<id>/grade` | no | A student's computed grade summary in that course |
 
 `weights` is `{"homework": h, "quiz": q, "exam": e}` (whole percentages summing to 100);
 omit it to use the 40/20/40 default. `category` is one of `homework`, `quiz`, `exam`.
@@ -229,7 +231,7 @@ pytest
 app/
   __init__.py      app factory; auto-creates the DB on first run
   db.py            SQLite connection + init-db / create-admin CLI commands
-  schema.sql       user / course / student / assignment / grade tables
+  schema.sql       user / course / student / enrollment / assignment / grade tables
   models.py        data access + weight validation + grade computation
   utils.py         pure grade math (category %, weighted final, letter grade)
   auth.py          register/login/logout + login_required / admin_required / api_auth_required

@@ -65,7 +65,7 @@ Tests live in `tests/` and use a throwaway temporary database per test (see
 | --- | --- |
 | `app/__init__.py` | App factory; auto-creates the DB on first run |
 | `app/db.py` | SQLite connection + `init-db` / `create-admin` CLI commands |
-| `app/schema.sql` | `user` / `course` / `student` / `assignment` / `grade` tables |
+| `app/schema.sql` | `user` / `course` / `student` / `enrollment` / `assignment` / `grade` tables |
 | `app/models.py` | Data access + weight validation (`WeightError`) + grade computation |
 | `app/utils.py` | Pure grade math (category %, weighted final, letter grade) |
 | `app/auth.py` | Register/login/logout + `login_required` / `admin_required` / `api_auth_required` |
@@ -91,8 +91,14 @@ A few conventions worth knowing:
   validate the three weights and raise `WeightError` otherwise; routes catch it and flash
   / return the message. A category with no graded work is dropped and the rest renormalized.
 - **`student_id` is the visible identifier.** It's the school-assigned student ID shown
-  throughout the UI and is unique within a course; the integer primary key (`student.id`)
-  is only used internally and in foreign keys.
+  throughout the UI and is **globally unique**; the integer primary key (`student.id`) is
+  only used internally and in foreign keys.
+- **Students are global; `enrollment` joins them to courses.** A `student` row is one
+  person (independent of any course); an `enrollment` row links a student to a course. The
+  same student can be enrolled in many courses. `create_student` reuses an existing student
+  when the visible ID already exists; "removing" a student from a course un-enrolls them
+  (and drops that course's grades) but keeps the shared student record. Per-student grade
+  queries are therefore course-scoped (`student_grade(course_id, student_id)`).
 - **API errors** return JSON `{"error": "..."}` with a meaningful status code
   (`400` bad input, `401` unauthenticated, `403` forbidden, `404` missing).
 - **Course ownership:** a course is editable by an admin or the teacher who created it

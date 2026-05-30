@@ -72,7 +72,8 @@
               </td>
               {% if can_edit %}
                 <td class="actions">
-                  <form method="post" action="{{ url_for('web.delete_student', student_id=r.student['id']) }}"
+                  <a href="{{ url_for('web.edit_student', course_id=course['id'], student_id=r.student['id']) }}">Edit</a>
+                  <form method="post" action="{{ url_for('web.remove_student', course_id=course['id'], student_id=r.student['id']) }}"
                         onsubmit="return confirm('Remove {{ r.student['name'] }} from this course?');">
                     <button type="submit" class="link-button danger">Remove</button>
                   </form>

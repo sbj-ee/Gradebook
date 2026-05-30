@@ -11,7 +11,7 @@ def test_duplicate_student_id_rejected(client, auth):
         f"/api/courses/{cid}/students", json={"student_id": "S1", "name": "B"}
     )
     assert resp.status_code == 400
-    assert b"already used" in resp.data
+    assert b"already enrolled" in resp.data
 
 
 def test_invalid_category_rejected(client, auth):
@@ -112,7 +112,7 @@ def test_ungraded_category_is_renormalized(client, auth):
     add_assignment(client, cid, category="exam", name="Final", max_points=100)
     # Only homework graded; quiz/exam empty -> final equals the homework percentage.
     client.post(f"/api/assignments/{hw}/grades", json={"student_id": sid, "points": 95})
-    summary = client.get(f"/api/students/{sid}/grade").get_json()
+    summary = client.get(f"/api/courses/{cid}/students/{sid}/grade").get_json()
     assert summary["final_percentage"] == 95.0
     assert summary["letter"] == "A"
     assert summary["categories"]["exam"]["percentage"] is None
@@ -127,7 +127,7 @@ def test_category_aggregates_multiple_assignments(client, auth):
     client.post(f"/api/assignments/{hw1}/grades", json={"student_id": sid, "points": 8})
     client.post(f"/api/assignments/{hw2}/grades", json={"student_id": sid, "points": 24})
     # (8 + 24) / (10 + 30) = 80%
-    summary = client.get(f"/api/students/{sid}/grade").get_json()
+    summary = client.get(f"/api/courses/{cid}/students/{sid}/grade").get_json()
     assert summary["categories"]["homework"]["percentage"] == 80.0
     assert summary["final_percentage"] == 80.0
 
@@ -213,7 +213,7 @@ def test_extra_credit_boosts_its_category(client, auth):
     client.post(f"/api/assignments/{hw}/grades", json={"student_id": sid, "points": 18})  # 18/20
     client.post(f"/api/assignments/{ec['id']}/grades", json={"student_id": sid, "points": 2})
     # earned 20 / possible 20 (EC doesn't add to possible) -> 100%
-    summary = client.get(f"/api/students/{sid}/grade").get_json()
+    summary = client.get(f"/api/courses/{cid}/students/{sid}/grade").get_json()
     assert summary["categories"]["homework"]["possible"] == 20
     assert summary["categories"]["homework"]["earned"] == 20
     assert summary["categories"]["homework"]["percentage"] == 100.0
@@ -231,7 +231,7 @@ def test_extra_credit_can_exceed_100(client, auth):
     client.post(f"/api/assignments/{hw}/grades", json={"student_id": sid, "points": 20})   # full
     client.post(f"/api/assignments/{ec}/grades", json={"student_id": sid, "points": 4})     # +4 bonus
     # 24 / 20 -> 120%
-    summary = client.get(f"/api/students/{sid}/grade").get_json()
+    summary = client.get(f"/api/courses/{cid}/students/{sid}/grade").get_json()
     assert summary["categories"]["homework"]["percentage"] == 120.0
 
 
@@ -263,7 +263,7 @@ def test_ui_grade_entry_and_clear(client, auth):
     aid = add_assignment(client, cid, max_points=100)
     # Enter a grade through the bulk web form.
     client.post(f"/assignments/{aid}/grades", data={f"points_{sid}": "88"}, follow_redirects=True)
-    assert client.get(f"/api/students/{sid}/grade").get_json()["categories"]["homework"]["percentage"] == 88.0
+    assert client.get(f"/api/courses/{cid}/students/{sid}/grade").get_json()["categories"]["homework"]["percentage"] == 88.0
     # Submitting a blank field clears it.
     client.post(f"/assignments/{aid}/grades", data={f"points_{sid}": ""}, follow_redirects=True)
-    assert client.get(f"/api/students/{sid}/grade").get_json()["categories"]["homework"]["percentage"] is None
+    assert client.get(f"/api/courses/{cid}/students/{sid}/grade").get_json()["categories"]["homework"]["percentage"] is None

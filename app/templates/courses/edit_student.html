@@ -1,0 +1,22 @@
+{% extends "base.html" %}
+{% block title %}Edit student · {{ student['name'] }}{% endblock %}
+{% block content %}
+  <p><a href="{{ url_for('web.course_detail', course_id=course['id']) }}">&larr; {{ course['name'] }}</a></p>
+  <h1>Edit student</h1>
+  <p class="muted">This edits the student's shared record, so changes apply in every course they're enrolled in.</p>
+  <form method="post" class="card">
+    <label>Student ID
+      <input name="student_id" value="{{ values.get('student_id', '') }}" required autofocus>
+    </label>
+    <label>Name
+      <input name="name" value="{{ values.get('name', '') }}" required>
+    </label>
+    <label>Email (optional, for grade notifications)
+      <input type="email" name="email" value="{{ values.get('email', '') }}">
+    </label>
+    <label>Phone (optional, for SMS notifications)
+      <input type="tel" name="phone" value="{{ values.get('phone', '') }}" placeholder="+15551234567">
+    </label>
+    <button type="submit">Save changes</button>
+  </form>
+{% endblock %}

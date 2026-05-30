@@ -143,17 +143,54 @@ def add_student(course_id):
     return redirect(url_for("web.course_detail", course_id=course_id))
 
 
-@bp.route("/students/<int:student_id>/delete", methods=("POST",))
+@bp.route("/courses/<int:course_id>/students/<int:student_id>/edit",
+          methods=("GET", "POST"))
 @login_required
-def delete_student(student_id):
-    student = models.get_student(student_id)
-    if student is None:
-        abort(404)
-    course = models.get_course(student["course_id"])
+def edit_student(course_id, student_id):
+    course = models.get_course(course_id)
     _require_course_edit(course)
-    models.delete_student(student_id)
-    flash("Student removed.")
-    return redirect(url_for("web.course_detail", course_id=course["id"]))
+    student = models.get_student(student_id)
+    if student is None or not models.is_enrolled(course_id, student_id):
+        abort(404)
+    if request.method == "POST":
+        try:
+            models.update_student(
+                student_id,
+                request.form.get("student_id"),
+                request.form.get("name"),
+                request.form.get("email"),
+                request.form.get("phone"),
+            )
+            flash("Student updated.")
+            return redirect(url_for("web.course_detail", course_id=course_id))
+        except ValueError as e:
+            flash(str(e))
+            return render_template(
+                "courses/edit_student.html",
+                course=course, student=student, values=request.form,
+            )
+    values = {
+        "student_id": student["student_id"],
+        "name": student["name"],
+        "email": student["email"] or "",
+        "phone": student["phone"] or "",
+    }
+    return render_template(
+        "courses/edit_student.html", course=course, student=student, values=values
+    )
+
+
+@bp.route("/courses/<int:course_id>/students/<int:student_id>/remove",
+          methods=("POST",))
+@login_required
+def remove_student(course_id, student_id):
+    course = models.get_course(course_id)
+    _require_course_edit(course)
+    if not models.is_enrolled(course_id, student_id):
+        abort(404)
+    models.unenroll(course_id, student_id)
+    flash("Student removed from this course.")
+    return redirect(url_for("web.course_detail", course_id=course_id))
 
 
 @bp.route("/courses/<int:course_id>/assignments", methods=("POST",))

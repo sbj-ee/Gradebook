@@ -46,7 +46,7 @@ def list_courses_for_user(user_id):
     db = get_db()
     return db.execute(
         """SELECT c.*,
-                  (SELECT COUNT(*) FROM student s WHERE s.course_id = c.id) AS student_count
+                  (SELECT COUNT(*) FROM enrollment e WHERE e.course_id = c.id) AS student_count
              FROM course c
             WHERE c.created_by = ?
          ORDER BY c.name COLLATE NOCASE""",
@@ -123,12 +123,16 @@ def delete_course(course_id):
     db.commit()
 
 
-# --- Students --------------------------------------------------------------
+# --- Students & enrollment -------------------------------------------------
 
 def list_students(course_id):
+    """Students enrolled in a course (global student rows), ordered by name."""
     db = get_db()
     return db.execute(
-        "SELECT * FROM student WHERE course_id = ? ORDER BY name COLLATE NOCASE",
+        """SELECT s.* FROM student s
+             JOIN enrollment e ON e.student_id = s.id
+            WHERE e.course_id = ?
+         ORDER BY s.name COLLATE NOCASE""",
         (course_id,),
     ).fetchall()
 
@@ -140,9 +144,41 @@ def get_student(student_id):
     ).fetchone()
 
 
+def get_student_by_code(student_code):
+    db = get_db()
+    return db.execute(
+        "SELECT * FROM student WHERE student_id = ?", (student_code,)
+    ).fetchone()
+
+
+def is_enrolled(course_id, student_id):
+    db = get_db()
+    return db.execute(
+        "SELECT 1 FROM enrollment WHERE course_id = ? AND student_id = ?",
+        (course_id, student_id),
+    ).fetchone() is not None
+
+
+def courses_for_student(student_id):
+    """Courses a student is enrolled in (id + created_by); used for permission
+    checks when editing the shared student record."""
+    db = get_db()
+    return db.execute(
+        """SELECT c.id, c.created_by FROM course c
+             JOIN enrollment e ON e.course_id = c.id
+            WHERE e.student_id = ?""",
+        (student_id,),
+    ).fetchall()
+
+
 def create_student(course_id, student_code, name, email=None, phone=None):
-    """Enroll a student. ``student_code`` is the visible student ID, unique within
-    the course. Raises ValueError on blank input or a duplicate student ID."""
+    """Enroll a student in a course, creating the global student on first sight.
+
+    ``student_code`` is the globally-unique visible student ID; if it already
+    exists, that student is enrolled and their stored details are left unchanged
+    (edit them separately). Raises ValueError on blank input or a duplicate
+    enrollment. Returns the student's primary-key id.
+    """
     if get_course(course_id) is None:
         raise ValueError("course not found")
     student_code = (student_code or "").strip()
@@ -152,21 +188,33 @@ def create_student(course_id, student_code, name, email=None, phone=None):
     if not name:
         raise ValueError("student name is required")
     db = get_db()
-    try:
+    existing = get_student_by_code(student_code)
+    if existing is None:
         cur = db.execute(
-            "INSERT INTO student (course_id, student_id, name, email, phone) VALUES (?, ?, ?, ?, ?)",
-            (course_id, student_code, name,
+            "INSERT INTO student (student_id, name, email, phone) VALUES (?, ?, ?, ?)",
+            (student_code, name,
              (email or "").strip() or None, (phone or "").strip() or None),
+        )
+        student_id = cur.lastrowid
+    else:
+        student_id = existing["id"]
+    try:
+        db.execute(
+            "INSERT INTO enrollment (course_id, student_id) VALUES (?, ?)",
+            (course_id, student_id),
         )
         db.commit()
     except db.IntegrityError:
-        raise ValueError(f"student ID {student_code!r} is already used in this course")
-    return cur.lastrowid
+        db.rollback()
+        raise ValueError(
+            f"student ID {student_code!r} is already enrolled in this course"
+        )
+    return student_id
 
 
 def update_student(student_id, student_code, name, email=None, phone=None):
-    """Update a student row. ``student_id`` is the primary key; ``student_code`` is
-    the visible student ID. Raises ValueError on blank input or a duplicate ID."""
+    """Update the global student record. Raises ValueError on blank input or a
+    student ID already used by another student."""
     student_code = (student_code or "").strip()
     if not student_code:
         raise ValueError("student ID is required")
@@ -182,11 +230,29 @@ def update_student(student_id, student_code, name, email=None, phone=None):
         )
         db.commit()
     except db.IntegrityError:
-        raise ValueError(f"student ID {student_code!r} is already used in this course")
+        raise ValueError(f"student ID {student_code!r} is already in use")
+
+
+def unenroll(course_id, student_id):
+    """Remove a student from one course: delete their grades on that course's
+    assignments and the enrollment row. The global student record stays (they may
+    be enrolled in other courses)."""
+    db = get_db()
+    db.execute(
+        """DELETE FROM grade
+            WHERE student_id = ?
+              AND assignment_id IN (SELECT id FROM assignment WHERE course_id = ?)""",
+        (student_id, course_id),
+    )
+    db.execute(
+        "DELETE FROM enrollment WHERE course_id = ? AND student_id = ?",
+        (course_id, student_id),
+    )
+    db.commit()
 
 
 def delete_student(student_id):
-    # grade rows cascade via ON DELETE CASCADE.
+    # Deletes the global student everywhere; enrollment + grade rows cascade.
     db = get_db()
     db.execute("DELETE FROM student WHERE id = ?", (student_id,))
     db.commit()
@@ -299,8 +365,8 @@ def set_grade(assignment_id, student_id, points):
     student = get_student(student_id)
     if student is None:
         raise ValueError("student not found")
-    if student["course_id"] != assignment["course_id"]:
-        raise ValueError("student and assignment belong to different courses")
+    if not is_enrolled(assignment["course_id"], student_id):
+        raise ValueError("student is not enrolled in this assignment's course")
     try:
         points = float(points)
     except (TypeError, ValueError):
@@ -340,20 +406,23 @@ def _course_weights(course):
     }
 
 
-def student_grade(student_id):
-    """Computed grade summary for one student: per-category percentages, the
-    weighted final, and a letter. Returns None if the student doesn't exist."""
+def student_grade(course_id, student_id):
+    """Computed grade summary for one student in one course: per-category
+    percentages, the weighted final, and a letter. Returns None if the student
+    isn't enrolled in the course."""
     student = get_student(student_id)
-    if student is None:
+    if student is None or not is_enrolled(course_id, student_id):
         return None
-    course = get_course(student["course_id"])
-    assignments = list_assignments(course["id"])
+    course = get_course(course_id)
+    assignments = list_assignments(course_id)
     db = get_db()
     grades = {
         r["assignment_id"]: r["points"]
         for r in db.execute(
-            "SELECT assignment_id, points FROM grade WHERE student_id = ?",
-            (student_id,),
+            """SELECT g.assignment_id, g.points FROM grade g
+                 JOIN assignment a ON a.id = g.assignment_id
+                WHERE g.student_id = ? AND a.course_id = ?""",
+            (student_id, course_id),
         ).fetchall()
     }
     return _summarize(student, assignments, grades, _course_weights(course))

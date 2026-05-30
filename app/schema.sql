@@ -32,19 +32,29 @@ CREATE TABLE course (
   FOREIGN KEY (created_by) REFERENCES user (id)
 );
 
--- A student enrolled in one course. A course can hold any number of students.
--- student_id is the visible, school-assigned identifier shown throughout the UI
--- (distinct from the surrogate primary key); it's unique within a course.
+-- A student is a person, independent of any course. student_id is the visible,
+-- school-assigned identifier shown throughout the UI (distinct from the surrogate
+-- primary key) and is globally unique, so one person has one identity even when
+-- enrolled in several courses.
 CREATE TABLE student (
   id INTEGER PRIMARY KEY AUTOINCREMENT,
-  course_id INTEGER NOT NULL,
-  student_id TEXT NOT NULL,
+  student_id TEXT UNIQUE NOT NULL,
   name TEXT NOT NULL,
   email TEXT,
   phone TEXT,
+  created_at TEXT NOT NULL DEFAULT (datetime('now'))
+);
+
+-- A student's membership in a course. The same student can be enrolled in any
+-- number of courses; each (course, student) pair is unique.
+CREATE TABLE enrollment (
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  course_id INTEGER NOT NULL,
+  student_id INTEGER NOT NULL,
   created_at TEXT NOT NULL DEFAULT (datetime('now')),
   UNIQUE (course_id, student_id),
-  FOREIGN KEY (course_id) REFERENCES course (id) ON DELETE CASCADE
+  FOREIGN KEY (course_id) REFERENCES course (id) ON DELETE CASCADE,
+  FOREIGN KEY (student_id) REFERENCES student (id) ON DELETE CASCADE
 );
 
 -- A graded item in a course. category is one of: homework | quiz | exam.
@@ -101,7 +111,8 @@ CREATE TABLE password_reset (
   created_at TEXT NOT NULL DEFAULT (datetime('now'))
 );
 
-CREATE INDEX idx_student_course ON student (course_id);
+CREATE INDEX idx_enrollment_course ON enrollment (course_id);
+CREATE INDEX idx_enrollment_student ON enrollment (student_id);
 CREATE INDEX idx_assignment_course ON assignment (course_id, category);
 CREATE INDEX idx_grade_assignment ON grade (assignment_id);
 CREATE INDEX idx_grade_student ON grade (student_id);
