@@ -1,6 +1,9 @@
+-- Drop in child-before-parent order so foreign-key-aware drops don't strand a
+-- referencing table (matters when re-initializing an existing database).
 DROP TABLE IF EXISTS password_reset;
 DROP TABLE IF EXISTS notification;
 DROP TABLE IF EXISTS grade;
+DROP TABLE IF EXISTS enrollment;
 DROP TABLE IF EXISTS assignment;
 DROP TABLE IF EXISTS student;
 DROP TABLE IF EXISTS course;
